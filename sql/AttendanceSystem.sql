@@ -1,6 +1,4 @@
 USE MASTER
-GO
-DROP DATABASE AttendanceSystem
 
 CREATE DATABASE AttendanceSystem
 GO
@@ -10,7 +8,7 @@ GO
 
 -- Create Table
 CREATE TABLE SysRole(
-	[role_id] TINYINT NOT NULL,
+	[role_id] TINYINT IDENTITY(1, 1) NOT NULL,
 	[role_name] NVARCHAR(256) NULL,
 	[status] BIT NULL,
 	[creator_id] INT NULL,
@@ -22,7 +20,7 @@ ALTER TABLE SysRole ADD CONSTRAINT PK_SysRole PRIMARY KEY CLUSTERED(role_id) ON 
 GO
 
 CREATE TABLE SysUser(
-	[user_id] INT NOT NULL,
+	[user_id] INT IDENTITY(1, 1) NOT NULL,
 	[email] VARCHAR(64) NULL,
 	[username] VARCHAR(64) NULL,
 	[password] VARCHAR(128) NULL,
@@ -84,7 +82,7 @@ ALTER TABLE Shift ADD CONSTRAINT PK_Shift PRIMARY KEY CLUSTERED(shift_code) ON [
 GO
 
 CREATE TABLE CourseGroup(
-	[course_group_id] INT NOT NULL,
+	[course_group_id] INT IDENTITY(1, 1) NOT NULL,
 	[course_code] VARCHAR(32) NULL,
 	[group_code] VARCHAR(32) NULL,
 	[teacher_id] INT NULL,
@@ -152,7 +150,7 @@ ALTER TABLE AttendanceRawData ADD CONSTRAINT FK_AttendanceRawDataCourseGroup FOR
 GO
 
 CREATE TABLE Attendance(
-	[attendance_id] INT NULL,
+	[attendance_id] INT IDENTITY(1, 1) NOT NULL,
 	[student_id] INT NOT NULL,
 	[course_group_id] INT NOT NULL,
 	[attend_date] DATE NOT NULL,
@@ -171,7 +169,7 @@ ALTER TABLE Attendance ADD CONSTRAINT FK_AttendanceCourseGroup FOREIGN KEY(cours
 GO
 
 CREATE TABLE SysComment(
-	[comment_id] INT NOT NULL,
+	[comment_id] INT IDENTITY(1, 1) NOT NULL,
 	[root_id] INT NULL,
 	[parent_id] INT NULL,
 	[ref_id] INT NULL,
@@ -189,7 +187,7 @@ ALTER TABLE SysComment ADD CONSTRAINT FK_SysCommentUserCommenter FOREIGN KEY(com
 GO
 
 CREATE TABLE SysNotify(
-	[notify_id] INT NOT NULL,
+	[notify_id] INT IDENTITY(1, 1) NOT NULL,
 	[sender_id] INT NULL,
 	[receiver_id] INT NULL,
 	[title] NVARCHAR(256) NULL,
