@@ -37,7 +37,8 @@ class UserController {
                 'status': 200,
                 'message': 'Receive users success.',
                 'data': {
-                    'test': data
+                    'users': data[0],
+                    'pageInfo': data[1]
                 }
             });
         }).catch((err) => {

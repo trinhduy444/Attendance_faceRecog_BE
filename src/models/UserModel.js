@@ -89,6 +89,22 @@ class UserModel {
             });
         });
     }
+
+    addUser(user) {
+        console.log(user);
+    }
+
+    changePassword(user) {
+        
+    }
+
+    updateUser(oldKey, user) {
+
+    }
+
+    deleteUser(key) {
+
+    }
 }
 
 module.exports = new UserModel;
