@@ -78,20 +78,27 @@ class UserModel {
         return new Promise((resolve, reject) => {
             const q = "exec TableLoadingPagination 'sysuser', ?, ?, ?, ?, ?, ?";
             const params = [otherJoins, otherFields, order, search, page, limit];
-            let result = []
+            let result = [], cout = 1;
             db.query(q, params, (err, rows, output) => {
                 if (err) reject(err);
 
-                if (rows.length) result.push(rows);
-                if (result.length == 2) {
+                if (rows.length || cout == 3) result.push(rows);
+                if (result.length == 2 || cout == 4) {
                     resolve(result);
                 }
+                cout++;
             });
         });
     }
 
     addUser(user) {
+        /*
         console.log(user);
+        return new Promsise((resolve, reject) => {
+            const q = 'insert into sysuser()'
+            const params = []
+        });
+        */
     }
 
     changePassword(user) {

@@ -15,7 +15,6 @@ class AuthMiddleware {
             // Verify token
             jwt.verify(token, process.env.JWT_PRIVATE_KEY, (err, decoded) => {
                 if (err) {
-                    console.log(err)
                     return res.status(401).json({
                         'status': 401,
                         'message': 'Invalid token.',
