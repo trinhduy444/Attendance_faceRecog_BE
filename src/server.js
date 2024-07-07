@@ -17,11 +17,13 @@ const app = express();
 app.use(express.json());
 
 const apiRouter = require('./routes/ApiRouter');
-console.log(port,FRONTEND_URL);
 // Security Implementations
-app.use(cors({
+const corsOptions = {
     origin: FRONTEND_URL,
-}));
+    credentials: true,
+};
+app.use(cors(corsOptions));
+
 
 app.get('/', (req, res) => {
     res.send('Attendance Face API');
