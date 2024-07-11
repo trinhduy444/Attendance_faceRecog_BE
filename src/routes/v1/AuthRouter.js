@@ -3,10 +3,8 @@ const router = express.Router();
 const passport = require('passport');
 const session = require('express-session');
 const authController = require('../../controllers/AuthController');
+const authMiddleWare = require('../../middlewares/AuthMiddleWare');
 
-function isLoggedIn(req, res, next) {
-    req.user ? next() : res.sendStatus(401);
-}
 
 // Login
 router.post('/login', authController.login);
@@ -19,9 +17,10 @@ router.use('/logout', authController.logout);
 router.get('/failure', authController.loginFailure);
 
 //Check authentication
-router.get('/protected', isLoggedIn, (req, res) => {
+router.get('/protected', authMiddleWare.isLogin, (req, res) => {
     let nickname = req.user.nickname;
     res.send(`Hello ${nickname}`);
 })
+router.post('/checkToken/:token', authController.checkTokenValid) // chua xong
 
 module.exports = router;

@@ -1,18 +1,16 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
-function generateJWTToken(userid) {
-    const token = jwt.sign({ 'user_id': userid }, process.env.JWT_PRIVATE_KEY, { expiresIn: 3 * 60 * 60 });
+function generateJWTToken(userid,role_id) {
+    const token = jwt.sign({ 'user_id': userid, 'role_id':role_id }, process.env.JWT_PRIVATE_KEY, { expiresIn: 3 * 60 * 60 });
     return token;
 }
 
 function verifyJWTToken(token) {
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
-        return decoded.user_id;
-    } catch (err) {
-        return null;
-    }
+    const decoded = jwt.decode(token);
+    return decoded;
 }
 
-module.exports = {generateJWTToken, verifyJWTToken};
+
+
+module.exports = { generateJWTToken, verifyJWTToken };

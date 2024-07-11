@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/UserModel');
 const { generateJWTToken } = require('../helpers/TokenHelpers');
+const {UnauthorizedError} = require('../utils/response/ErrorResponse');
 class AuthController {
     login(req, res) {
         var { username, password } = req.body;
@@ -26,8 +27,7 @@ class AuthController {
                         if (result) {
                             // Create JWT Token
                             try {
-                                const token = generateJWTToken(user.user_id)
-                                req.user = user;
+                                const token = generateJWTToken(user.user_id, user.role_id)
                                 return res.status(200).json({
                                     'status': 200,
                                     'message': 'Login success.',
@@ -69,26 +69,15 @@ class AuthController {
 
     loginGoogle(req, res) {
         if (req.user) {
-            const token = generateJWTToken(req.user.user_id);
-
-            // return res.status(200).json({
-            //     'status': 200,
-            //     'message': 'Login successfully.',
-            //     'data': {
-            //         'token': token,
-            //         'metadata': req.user
-            //     }
-            // });
-            res.redirect(process.env.FRONTEND_URL+`?token=${token}`);
-        }else{
-            res.status(403).json({error: true, message: 'Not authorized'})
+            const token = generateJWTToken(req.user.user_id, req.user.role_id);
+            res.redirect(process.env.FRONTEND_URL + `?token=${token}`);
+        } else {
+            res.status(403).json({ error: true, message: 'Not authorized' })
         }
-        // console.log("Req.USER login: " + JSON.stringify(req.user));
     }
     logout(req, res) {
         req.session.destroy();
-        // console.log("Req.USER logout: " + JSON.stringify(req.user));
-        res.redirect(process.env.FRONTEND_URL+'/login');
+        res.redirect(process.env.FRONTEND_URL + '/login');
 
     }
     loginFailure(req, res) {
@@ -96,6 +85,11 @@ class AuthController {
             'status': 403,
             'message': 'Login Failure',
         });
+    }
+    checkTokenValid(req, res) {
+       const token = req.params.token;
+       
+
     }
     // Temp code
     temp() {
