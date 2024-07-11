@@ -101,6 +101,11 @@ class UserModel {
         */
     }
 
+    createUsers(users) {
+        console.log(users);
+        
+    }
+
     changePassword(user) {
         
     }
