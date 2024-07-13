@@ -46,7 +46,7 @@ class AuthController {
                     throw new UnauthorizedError("Invalid username or password");
                 }
             }).catch((err) => {
-                throw new BadRequestError(err.message)
+                return res.status(500).json({ code: 500, message: err.message });
             });
     }
 
