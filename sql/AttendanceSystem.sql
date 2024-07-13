@@ -7,7 +7,8 @@ USE AttendanceSystem
 GO
 
 -- Create Table
-CREATE TABLE SysRole(
+CREATE TABLE SysRole
+(
 	[role_id] TINYINT IDENTITY(1, 1) NOT NULL,
 	[role_name] NVARCHAR(256) NULL,
 	[status] BIT NULL,
@@ -19,7 +20,8 @@ CREATE TABLE SysRole(
 ALTER TABLE SysRole ADD CONSTRAINT PK_SysRole PRIMARY KEY CLUSTERED(role_id) ON [PRIMARY]
 GO
 
-CREATE TABLE SysUser(
+CREATE TABLE SysUser
+(
 	[user_id] INT IDENTITY(1, 1) NOT NULL,
 	[email] VARCHAR(64) NULL,
 	[username] VARCHAR(64) NULL,
@@ -35,11 +37,13 @@ CREATE TABLE SysUser(
 	[create_time] DATETIME NULL,
 	[update_time] DATETIME NULL
 )
+
 ALTER TABLE SysUser ADD CONSTRAINT PK_SysUser PRIMARY KEY CLUSTERED(user_id) ON [PRIMARY]
 ALTER TABLE SysUser ADD CONSTRAINT FK_SysUserRole FOREIGN KEY(role_id) REFERENCES SysRole(role_id)
 GO
 
-CREATE TABLE Course(
+CREATE TABLE Course
+(
 	[course_code] VARCHAR(32) NOT NULL,
 	[course_name] NVARCHAR(256) NULL,
 	[credit] INT NULL,
@@ -53,7 +57,8 @@ CREATE TABLE Course(
 ALTER TABLE Course ADD CONSTRAINT PK_Course PRIMARY KEY CLUSTERED(course_code) ON [PRIMARY]
 GO
 
-CREATE TABLE Classroom(
+CREATE TABLE Classroom
+(
 	[classroom_code] VARCHAR(32) NOT NULL,
 	[capacity] INT NULL,
 	[floor] INT NULL,
@@ -67,7 +72,8 @@ CREATE TABLE Classroom(
 ALTER TABLE Classroom ADD CONSTRAINT PK_Classroom PRIMARY KEY CLUSTERED(classroom_code) ON [PRIMARY]
 GO
 
-CREATE TABLE Shift(
+CREATE TABLE Shift
+(
 	[shift_code] VARCHAR(32) NOT NULL,
 	[start_time] CHAR(5) NULL,
 	[end_time] CHAR(5) NULL,
@@ -81,7 +87,8 @@ CREATE TABLE Shift(
 ALTER TABLE Shift ADD CONSTRAINT PK_Shift PRIMARY KEY CLUSTERED(shift_code) ON [PRIMARY]
 GO
 
-CREATE TABLE CourseGroup(
+CREATE TABLE CourseGroup
+(
 	[course_group_id] INT IDENTITY(1, 1) NOT NULL,
 	[course_code] VARCHAR(32) NULL,
 	[group_code] VARCHAR(32) NULL,
@@ -98,7 +105,8 @@ ALTER TABLE CourseGroup ADD CONSTRAINT FK_CourseGroupCourse FOREIGN KEY(course_c
 ALTER TABLE CourseGroup ADD CONSTRAINT FK_CourseGroupUserTeacher FOREIGN KEY(teacher_id) REFERENCES SysUser(user_id)
 GO
 
-CREATE TABLE CourseGroupStudentList(
+CREATE TABLE CourseGroupStudentList
+(
 	[course_group_id] INT NOT NULL,
 	[student_id] INT NOT NULL,
 	[total_absent] NUMERIC(19, 5) NULL,
@@ -114,7 +122,8 @@ ALTER TABLE CourseGroupStudentList ADD CONSTRAINT FK_CourseGroupStudentListCours
 ALTER TABLE CourseGroupStudentList ADD CONSTRAINT FK_CourseGroupStudentListUserStudent FOREIGN KEY(student_id) REFERENCES SysUser(user_id)
 GO
 
-CREATE TABLE Schedule(
+CREATE TABLE Schedule
+(
 	[course_group_id] INT NOT NULL,
 	[shift_code] VARCHAR(32) NOT NULL,
 	[classroom_code] VARCHAR(32) NOT NULL,
@@ -134,7 +143,8 @@ ALTER TABLE Schedule ADD CONSTRAINT FK_ScheduleShift FOREIGN KEY(shift_code) REF
 ALTER TABLE Schedule ADD CONSTRAINT FK_ScheduleClassroom FOREIGN KEY(classroom_code) REFERENCES Classroom(classroom_code)
 GO
 
-CREATE TABLE AttendanceRawData(
+CREATE TABLE AttendanceRawData
+(
 	[student_id] INT NOT NULL,
 	[course_group_id] INT NOT NULL,
 	[attend_date] DATE NOT NULL,
@@ -149,7 +159,8 @@ ALTER TABLE AttendanceRawData ADD CONSTRAINT FK_AttendanceRawDataUserStudent FOR
 ALTER TABLE AttendanceRawData ADD CONSTRAINT FK_AttendanceRawDataCourseGroup FOREIGN KEY(course_group_id) REFERENCES CourseGroup(course_group_id)
 GO
 
-CREATE TABLE Attendance(
+CREATE TABLE Attendance
+(
 	[attendance_id] INT IDENTITY(1, 1) NOT NULL,
 	[student_id] INT NOT NULL,
 	[course_group_id] INT NOT NULL,
@@ -168,7 +179,8 @@ ALTER TABLE Attendance ADD CONSTRAINT FK_AttendanceUserStudent FOREIGN KEY(stude
 ALTER TABLE Attendance ADD CONSTRAINT FK_AttendanceCourseGroup FOREIGN KEY(course_group_id) REFERENCES CourseGroup(course_group_id)
 GO
 
-CREATE TABLE SysComment(
+CREATE TABLE SysComment
+(
 	[comment_id] INT IDENTITY(1, 1) NOT NULL,
 	[root_id] INT NULL,
 	[parent_id] INT NULL,
@@ -186,7 +198,8 @@ ALTER TABLE SysComment ADD CONSTRAINT PK_SysComment PRIMARY KEY CLUSTERED(commen
 ALTER TABLE SysComment ADD CONSTRAINT FK_SysCommentUserCommenter FOREIGN KEY(commenter_id) REFERENCES SysUser(user_id)
 GO
 
-CREATE TABLE SysNotify(
+CREATE TABLE SysNotify
+(
 	[notify_id] INT IDENTITY(1, 1) NOT NULL,
 	[sender_id] INT NULL,
 	[receiver_id] INT NULL,
@@ -206,19 +219,43 @@ ALTER TABLE SysNotify ADD CONSTRAINT FK_SysNotifyUserReceiver FOREIGN KEY(receiv
 GO
 
 -- Select Table
-SELECT * FROM SysRole
-SELECT * FROM SysUser
+SELECT *
+FROM SysRole
+SELECT *
+FROM SysUser
 
-SELECT * FROM Course
-SELECT * FROM Classroom
-SELECT * FROM Shift
+SELECT *
+FROM Course
+SELECT *
+FROM Classroom
+SELECT *
+FROM Shift
 
-SELECT * FROM CourseGroup
-SELECT * FROM CourseGroupStudentList
-SELECT * FROM Schedule
+SELECT *
+FROM CourseGroup
+SELECT *
+FROM CourseGroupStudentList
+SELECT *
+FROM Schedule
 
-SELECT * FROM AttendanceRawData
-SELECT * FROM Attendance
+SELECT *
+FROM AttendanceRawData
+SELECT *
+FROM Attendance
 
-SELECT * FROM SysComment
-SELECT * FROM SysNotify
+SELECT *
+FROM SysComment
+SELECT *
+FROM SysNotify
+
+-- Chay dong nay nha Phuoc
+CREATE TABLE keyStore
+(
+	[user_id] INT NOT NULL PRIMARY KEY,
+	[privateKey] VARCHAR(256) NOT NULL,
+	[publicKey] VARCHAR(256) NOT NULL,
+	[refreshTokenUsing] VARCHAR(512) Unique NOT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL,
+	CONSTRAINT FK_User FOREIGN KEY (user_id) REFERENCES SysUser(user_id)
+)
