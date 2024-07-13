@@ -1,58 +1,28 @@
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/UserModel');
-const { UnauthorizedError } = require('../utils/response/ErrorResponse');
+const keyStoreModel = require('../models/KeyStoreModel');
+const { UnauthorizedError, ForbiddenError } = require('../core/ErrorResponse');
 class AuthMiddleware {
-    isLogin(req, res, next) {
+    isLogin = async (req, res, next) => {
         //if login by GG next()
         if (req.user) return next();
         // Get header
-        let token = req.headers.authorization || '';
+        const accessToken = req.headers.authorization;
+        if (!accessToken?.startsWith("Bearer ")) throw new ForbiddenError("Token invalid"); // 403
+        // handle refresh token
+        const { refreshToken } = req.cookies
+        if (!refreshToken) throw new BadRequestError("refreshToken doesn't exist on cookies"); // 400
 
+        // console.log(">>>>>>>>>>>>>>>>>> access token:",accessToken);
+        // console.log(">>>>>>>>>>>>>>>>> refresh token:",refreshToken);
 
-        if (!token?.startsWith("Bearer ")) throw new UnauthorizedError('Token is required')
-        // Get Bearer token content
-        token = token.substring(7, token.length)
+        const users = await keyStoreModel.getUserByRefreshTokenUsing(refreshToken);
+        const user = users[0];
+        if (!user) throw new ForbiddenError("KeyStore invalid");
 
-        // Verify token
-        jwt.verify(token, process.env.JWT_PRIVATE_KEY, (err, decoded) => {
-            if (err) {
-                return res.status(401).json({
-                    'status': 401,
-                    'message': 'Invalid token.',
-                    'data': {}
-                });
-            }
-
-            const userId = decoded.user_id || -1;
-            userModel.getUserById(userId)
-                .then((user) => {
-                    if (user.length) {
-                        user = user[0];
-                        if (!user.status) {
-                            return res.status(401).json({
-                                'status': 401,
-                                'message': 'User no longer available.',
-                                'data': {}
-                            });
-                        }
-                        req.user = user;
-                        return next();
-                    }
-
-                    return res.status(401).json({
-                        'status': 401,
-                        'message': 'User no longer exists.',
-                        'data': {}
-                    });
-                }).catch((err) => {
-                    return res.status(500).json({
-                        'status': 500,
-                        'message': err,
-                        'data': {}
-                    });
-                });
-        });
-
+        const payload = jwt.verify(accessToken.split(" ")[1], user.publicKey);
+        req.user = payload;
+        next();
     }
 
     isAdmin(req, res, next) {
