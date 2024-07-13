@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const userModel = require('../models/UserModel');
 const keyStoreModel = require('../models/KeyStoreModel');
 const { generateJWTToken } = require('../helpers/TokenHelpers');
-const { UnauthorizedError, BadRequestError } = require('../core/ErrorResponse');
+const { ForbiddenError,UnauthorizedError, BadRequestError } = require('../core/ErrorResponse');
 const createKeys = require('../utils/createKeyUtil');
 const { createTokenPair } = require('../auth/authUtil');
 const { getInfoData } = require('../utils/index');
@@ -43,18 +43,10 @@ class AuthController {
                         }).catch(err => res.status(400).json({ code: 400, message: "You're signed in somewhere else" }));
                     });
                 } else {
-                    return res.status(401).json({
-                        'status': 401,
-                        'message': 'Invalid username or password',
-                        'data': {}
-                    });
+                    throw new UnauthorizedError("Invalid username or password");
                 }
             }).catch((err) => {
-                return res.status(500).json({
-                    'status': 500,
-                    'message': err,
-                    'data': {}
-                });
+                return res.status(500).json({ code: 500, message: err.message });
             });
     }
 
@@ -63,7 +55,7 @@ class AuthController {
             const token = generateJWTToken(req.user.user_id, req.user.role_id);
             res.redirect(process.env.FRONTEND_URL + `?token=${token}`);
         } else {
-            res.status(403).json({ error: true, message: 'Not authorized' })
+            throw new UnauthorizedError('Not authorized');
         }
     }
     logout(req, res) {
@@ -84,10 +76,7 @@ class AuthController {
         })
     }
     loginFailure(req, res) {
-        return res.status(403).json({
-            'status': 403,
-            'message': 'Login Failure',
-        });
+        throw new ForbiddenError('Not authorized');
     }
     checkTokenValid(req, res) {
         const token = req.params.token;

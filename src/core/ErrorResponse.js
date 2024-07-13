@@ -11,6 +11,7 @@ class NotFoundError extends CustomError {
         super(message);
         this.statusCode = StatusCodes.NOT_FOUND;
         this.reasonPhrases = ReasonPhrases.NOT_FOUND;
+        this.reason = message;
     }
 }
 
@@ -19,6 +20,7 @@ class BadRequestError extends CustomError {
         super(message);
         this.statusCode = StatusCodes.BAD_REQUEST;
         this.reasonPhrases = ReasonPhrases.BAD_REQUEST;
+        this.reason = message;
     }
 }
 
@@ -27,6 +29,7 @@ class UnauthorizedError extends CustomError {
         super(message);
         this.statusCode = StatusCodes.UNAUTHORIZED;
         this.reasonPhrases = ReasonPhrases.UNAUTHORIZED;
+        this.reason = message;
     }
 };
 
@@ -34,7 +37,8 @@ class ForbiddenError extends CustomError {
     constructor(message) {
         super(message);
         this.statusCode = StatusCodes.FORBIDDEN;
-        this.reasonPhrases = ReasonPhrases.FORBIDDEN;
+        this.reasonPhrases = message;
+        this.reason = message;
     };
 };
 
