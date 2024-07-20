@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const userModel = require('../models/UserModel');
 const keyStoreModel = require('../models/KeyStoreModel');
 const { UnauthorizedError, ForbiddenError } = require('../core/ErrorResponse');
 class AuthMiddleware {
@@ -18,9 +17,10 @@ class AuthMiddleware {
 
         const users = await keyStoreModel.getUserByRefreshTokenUsing(refreshToken);
         const user = users[0];
+        // console.log(">>>>>>> user",user);
         if (!user) throw new ForbiddenError("KeyStore invalid");
 
-        const payload = jwt.verify(accessToken.split(" ")[1], user.publicKey);
+        const payload = jwt.verify(accessToken.split(" ")[1], user.privateKey);
         req.user = payload;
         next();
     }

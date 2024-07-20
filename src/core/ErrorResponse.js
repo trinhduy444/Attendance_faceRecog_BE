@@ -42,10 +42,19 @@ class ForbiddenError extends CustomError {
     };
 };
 
+class InternalError extends CustomError {
+    constructor(message) {
+        super(message);
+        this.statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
+        this.reasonPhrases = message;
+        this.reason = message;
+    };
+};
 
 module.exports = {
     NotFoundError,
     BadRequestError,
     UnauthorizedError,
     ForbiddenError,
+    InternalError,
 }
