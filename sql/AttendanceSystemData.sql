@@ -21,3 +21,11 @@ INSERT INTO SysUser(email, username, password, nickname, phone, avatar_path, fac
 --New 07/07
 INSERT INTO SysUser(email, username, password, nickname, phone, avatar_path, face_image_path, role_id, status, creator_id, updater_id, create_time, update_time) VALUES('dohothuanthuy2002@gmail.com', '72001424', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Đỗ Hồ Thuận Thủy', '0901944765', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567')
 INSERT INTO SysUser(email, username, password, nickname, phone, avatar_path, face_image_path, role_id, status, creator_id, updater_id, create_time, update_time) VALUES('trinhduy444@gmail.com', '52001424', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Trinh Truong Duy', '01238462331', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567')
+
+
+INSERT INTO SysUser(email, username, password, nickname, phone, avatar_path, face_image_path, role_id, status, creator_id, updater_id, create_time, update_time) VALUES('trinhduy444@gmail.com', '52001424', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Trinh Truong Duy', '01238462331', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567')
+
+-- New 20/07 (update2)
+INSERT INTO Faculty(faculty_id, faculty_name, creator_id, updater_id, create_time, update_time) VALUES(10010, N'Công Nghệ Thông Tin', 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567')
+INSERT INTO Faculty(faculty_id, faculty_name, creator_id, updater_id, create_time, update_time) VALUES(10011, N'Quản Trị Kinh Doanh', 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567')
+INSERT INTO Faculty(faculty_id, faculty_name, creator_id, updater_id, create_time, update_time) VALUES(10012, N'Điện - Điện tử', 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567')

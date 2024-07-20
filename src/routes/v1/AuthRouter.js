@@ -13,7 +13,7 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/api/v1/auth/failure' }),authController.loginGoogle);
 
 //Logout and failure
-router.use('/logout', authController.logout);
+router.post('/logout', authController.logout);
 router.get('/failure', authController.loginFailure);
 
 //Check authentication

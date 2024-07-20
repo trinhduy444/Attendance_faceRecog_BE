@@ -259,3 +259,36 @@ CREATE TABLE keyStore
 	[update_time] DATETIME NULL,
 	CONSTRAINT FK_User FOREIGN KEY (user_id) REFERENCES SysUser(user_id)
 )
+
+-- Update 2 nha Phuoc them khoa và khóa
+
+CREATE TABLE Faculty
+(
+	[faculty_id] INT NOT NULL PRIMARY KEY,
+	[faculty_name] NVARCHAR(256) NOT NULL,
+	[creator_id]  INT NOT NULL,
+	[updater_id]  INT NOT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL,
+)
+
+ALTER TABLE SysUser
+ADD course_year INT NULL,
+    faculty_id INT NULL,
+	gender Bit Null;
+
+
+ALTER TABLE SysUser
+ADD CONSTRAINT FK_SysUser_Faculty FOREIGN KEY (faculty_id) REFERENCES Faculty(faculty_id);
+
+ALTER TABLE Course
+ADD faculty_id INT NULL;
+
+ALTER TABLE Course
+ADD CONSTRAINT FK_Course_Faculty FOREIGN KEY (faculty_id) REFERENCES Faculty(faculty_id);
+
+ALTER TABLE Faculty
+ADD CONSTRAINT FK_Faculty_SysUser FOREIGN KEY (creator_id) REFERENCES SysUser(user_id);
+
+ALTER TABLE Faculty
+ADD CONSTRAINT FK_Faculty_SysUser2 FOREIGN KEY (updater_id) REFERENCES SysUser(user_id);

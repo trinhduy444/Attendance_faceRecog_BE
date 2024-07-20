@@ -1,3 +1,9 @@
-@url = http://localhost:5000
+@url = http://localhost:5000/api/v1
 ### Login
-POST 
+POST {{url}}/auth/login
+Content-Type: application/json
+
+{
+    "username": "52000655",
+    "password": "123456"
+}

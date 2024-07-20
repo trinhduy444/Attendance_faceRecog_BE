@@ -3,8 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const userModel = require('../models/UserModel');
 const keyStoreModel = require('../models/KeyStoreModel');
-const { generateJWTToken } = require('../helpers/TokenHelpers');
-const { ForbiddenError,UnauthorizedError, BadRequestError } = require('../core/ErrorResponse');
+const { ForbiddenError, UnauthorizedError, BadRequestError, InternalError } = require('../core/ErrorResponse');
 const createKeys = require('../utils/createKeyUtil');
 const { createTokenPair } = require('../auth/authUtil');
 const { getInfoData } = require('../utils/index');
@@ -15,52 +14,101 @@ class AuthController {
         password = password || '';
 
         userModel.getUserByUsername(username)
-            .then((user) => {
+            .then(async (user) => {
                 if (user.length) {
                     user = user[0];
                     // Compare hash password
-                    bcrypt.compare(password, user.password, async (err, result) => {
-                        if (err) throw new BadRequestError(err.message);
+                    const isMatchPassword = await bcrypt.compare(password, user.password)
+                    if (!isMatchPassword) {
+                        res.status(401).json({
+                            status: 401,
+                            message: "Invalid password",
 
-                        const { privateKey, publicKey } = createKeys();
+                        })
+                    }
 
-                        const { user_id, nickname, email, phone, role_id } = user;
+                    const { privateKey, publicKey } = createKeys();
 
-                        const { accessToken, refreshToken } = await createTokenPair(
-                            { user_id, nickname, email, phone, role_id }, privateKey, publicKey
-                        )
+                    const { user_id, nickname, email, phone, role_id } = user;
 
-
-                        keyStoreModel.createKeyStore(user.user_id, privateKey, publicKey, refreshToken).then((key) => {
-                            res.cookie("refreshToken", refreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
-                            return res.status(200).json({
-                                code: '200',
-                                message: "Login success.",
-                                shop: getInfoData({ fields: ["user_id", "nickname", "email", "phone", "role_id"], object: user }),
-                                accessToken: accessToken,
-                                refreshToken: refreshToken
-                            })
-                        }).catch(err => res.status(400).json({ code: 400, message: "You're signed in somewhere else" }));
+                    const { accessToken, refreshToken } = await createTokenPair(
+                        { user_id, nickname, email, phone, role_id }, privateKey, publicKey
+                    )
+                    keyStoreModel.createKeyStore(user.user_id, privateKey, publicKey, refreshToken).then((key) => {
+                        res.cookie("refreshToken", refreshToken, {
+                            httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'None',
+                            secure: true
+                        });
+                        return res.status(200).json({
+                            status: 200,
+                            message: "Login success.",
+                            metadata: getInfoData({ fields: ["user_id", "nickname", "email", "phone", "role_id"], object: user }),
+                            accessToken: accessToken,
+                            refreshToken: refreshToken
+                        })
+                    }).catch((err) => {
+                        throw new InternalError(err.message);
                     });
                 } else {
-                    throw new UnauthorizedError("Invalid username or password");
+                    res.status(401).json({
+                        status: 401,
+                        message: "Invalid username",
+
+                    })
+                    // throw new UnauthorizedError("Invalid username");
                 }
             }).catch((err) => {
-                return res.status(500).json({ code: 500, message: err.message });
+                res.status(401).json({
+                    status: 401,
+                    message: "Invalid username",
+
+                })
             });
     }
 
-    loginGoogle(req, res) {
+    loginGoogle = async (req, res) => {
         if (req.user) {
-            const token = generateJWTToken(req.user.user_id, req.user.role_id);
-            res.redirect(process.env.FRONTEND_URL + `?token=${token}`);
+            const user = req.user
+            const { privateKey, publicKey } = createKeys();
+            const { user_id, nickname, email, phone, role_id } = user;
+
+            const { accessToken, refreshToken } = await createTokenPair(
+                { user_id, nickname, email, phone, role_id }, privateKey, publicKey
+            )
+            keyStoreModel.createKeyStore(user.user_id, privateKey, publicKey, refreshToken).then((key) => {
+                res.cookie("refreshToken", refreshToken, {
+                    httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000, sameSite: 'None',
+                    secure: true
+                });
+                // return res.redirect(process.env.FRONTEND_URL + `?token=${accessToken}`);
+                const userData = {
+                    status: 200,
+                    message: "Login success.",
+                    metadata: JSON.stringify({
+                        user_id: user.user_id,
+                        nickname: user.nickname,
+                        email: user.email,
+                        phone: user.phone,
+                        role_id: user.role_id 
+                    }),
+                    accessToken: accessToken,
+                    refreshToken: refreshToken
+
+                }
+                const queryParams = new URLSearchParams(userData).toString();
+                res.redirect(`http://localhost:3000/?${queryParams}`);
+            }).catch((err) => {
+                throw new InternalError(err.message);
+            });
         } else {
             throw new UnauthorizedError('Not authorized');
         }
     }
     logout(req, res) {
         const { refreshToken } = req.cookies
+        req.session.destroy();
         if (refreshToken) {
+            // console.log("You here")
             keyStoreModel.deleteKeyStoreByRefreshTokenUsing(refreshToken);
             res.clearCookie('refreshToken', { httpOnly: true, secure: true })
             return res.status(200).json({
@@ -69,7 +117,6 @@ class AuthController {
             })
         }
 
-        req.session.destroy();
         return res.status(200).json({
             status: 200,
             message: "Logout successfully."
