@@ -4,12 +4,12 @@ const sql = require('msnodesqlv8');
 const db = require('../utils/SqlConnection');
 const bcrypt = require('bcrypt');
 const facultyList = {
-    "Công Nghệ Thông Tin" : 10010,
-    "Quản Trị Kinh Doanh" : 10011,
-    "Điện - Điện tử" : 10012,
+    "Công Nghệ Thông Tin": 10010,
+    "Quản Trị Kinh Doanh": 10011,
+    "Điện - Điện tử": 10012,
 }
 const genderList = {
-    "Nam" : 1,
+    "Nam": 1,
     "Nữ": 0,
 };
 class UserModel {
@@ -17,7 +17,7 @@ class UserModel {
     getUserById(userId) {
         userId = sql.Int(userId);
         return new Promise((resolve, reject) => {
-            const q = 'select top 1 * from sysuser where user_id = ?';
+            const q = 'select sysuser.* ,faculty.faculty_name from sysuser left join faculty on Sysuser.faculty_id = faculty.faculty_id where user_id = ?';
             const params = [userId];
 
             db.query(q, params, (err, rows) => {
@@ -121,7 +121,7 @@ class UserModel {
 
             try {
                 const values = await Promise.all(users.map(async (user) => {
-                    const { MSSV, 'Họ Lót': hoLot, 'Tên': ten, Email, Phone, 'Khoa': faculty,'Khóa':course_year, Gender } = user;
+                    const { MSSV, 'Họ Lót': hoLot, 'Tên': ten, Email, Phone, 'Khoa': faculty, 'Khóa': course_year, Gender } = user;
                     const nickname = `${hoLot} ${ten}`;
                     const phoneStr = String(Phone); // Chuyển đổi Phone thành chuỗi
                     const last3DigitsOfPhone = phoneStr.slice(-3);
@@ -188,8 +188,23 @@ class UserModel {
     }
 
 
-    changePassword(user) {
+    changePassword(user_id, newPassword) {
+        // new password was hashed
+        user_id = sql.Int(user_id);
+        const currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
+        return new Promise((resolve, reject) => {
+            const q = 'update sysuser set password = ?, update_time = ? where user_id = ?';
+            const params = [newPassword, currentTime, user_id];
+
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject("Not found user");
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
     }
 
     updateUser(oldKey, user) {

@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
-const session = require('express-session');
 const authController = require('../../controllers/AuthController');
 const authMiddleWare = require('../../middlewares/AuthMiddleWare');
 
@@ -22,5 +21,9 @@ router.get('/protected', authMiddleWare.isLogin, (req, res) => {
     res.send(`Hello ${nickname}`);
 })
 router.post('/checkToken/:token', authController.checkTokenValid) // chua xong
+// Change password
+router.post('/checkPassword', authMiddleWare.isLogin, authController.checkPasswordValid)
+router.put('/changePassword', authMiddleWare.isLogin, authController.changePassword)
+
 
 module.exports = router;
