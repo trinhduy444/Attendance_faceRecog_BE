@@ -47,7 +47,7 @@ CREATE TABLE Course
 	[course_code] VARCHAR(32) NOT NULL,
 	[course_name] NVARCHAR(256) NULL,
 	[credit] INT NULL,
-	[description] NVARCHAR(256) NULL,
+	[description] NVARCHAR(512) NULL,
 	[status] BIT NULL,
 	[creator_id] INT NULL,
 	[updater_id] INT NULL,
@@ -292,3 +292,5 @@ ADD CONSTRAINT FK_Faculty_SysUser FOREIGN KEY (creator_id) REFERENCES SysUser(us
 
 ALTER TABLE Faculty
 ADD CONSTRAINT FK_Faculty_SysUser2 FOREIGN KEY (updater_id) REFERENCES SysUser(user_id);
+
+--- 3 So cuoi dien thoai + Ten khong dau (Chu cai dau viet hoa) + 4 so cuoi mssv

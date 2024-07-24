@@ -1,11 +1,10 @@
 // Path
 const path = require('path');
-
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const serverUtil = require('./utils/ServerUtil');
-const port = serverUtil.normalizePort(process.env.PORT || '5000');
+
 const FRONTEND_URL = serverUtil.normalizePort(process.env.FRONTEND_URL || 'http://localhost:3000');
 // Require
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const express = require('express');
 const app = express();
 const cors = require("cors");
@@ -49,9 +48,5 @@ app.use((req, res) => {
     });
 });
 
-// Listen to IIFE
-(() => {
-    app.listen(port, () => { console.log(`Server started on http://localhost:${port} press Ctrl-C to terminate.`) });
-})()
 
 module.exports = app;

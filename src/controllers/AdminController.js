@@ -19,6 +19,19 @@ class AdminController {
             metadata: users,
         })
     };
+
+    getTeachers = async (req, res) => {
+        if (req.user?.role_id !== 1) {
+            throw new ForbiddenError('You are not allowed');
+        }
+        const teachers = await userModel.getAllTeachers();
+        // console.log(users)
+        return res.status(200).json({
+            status: 200,
+            message: "Get Teachers Successfully",
+            metadata: teachers,
+        })
+    };
     createUsers = async (req, res) => {
         const { users } = req.body;
         if (!Array.isArray(users) || users.length === 0) {
@@ -39,6 +52,33 @@ class AdminController {
             return res.status(500).json({
                 status: 500,
                 message: "Error creating users",
+                error: error.message
+            });
+        }
+    }
+    createTeachers = async (req, res) => {
+        if (req.user?.role_id !== 1) {
+            throw new ForbiddenError('You are not allowed');
+        }
+        const { teachers } = req.body;
+        if (!Array.isArray(teachers) || teachers.length === 0) {
+            return res.status(403).json({ status: 403, message: 'Invalid teachers' });
+        }
+        // console.log(teachers)
+        // return res.status(201).json({
+        //     status: 201,
+        //     message: "Teachers created successfully"
+        // });
+        try {
+            await userModel.createTeachers(teachers, req.user.user_id);
+            return res.status(201).json({
+                status: 201,
+                message: "Teachers created successfully"
+            });
+        } catch (error) {
+            return res.status(500).json({
+                status: 500,
+                message: "Error creating teachers",
                 error: error.message
             });
         }

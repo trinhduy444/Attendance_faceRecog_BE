@@ -7,6 +7,9 @@ const facultyList = {
     "Công Nghệ Thông Tin": 10010,
     "Quản Trị Kinh Doanh": 10011,
     "Điện - Điện tử": 10012,
+    "Kế toán": 10013,
+    "Luật": 10014,
+    "Thiết kế đồ họa": 10015,
 }
 const genderList = {
     "Nam": 1,
@@ -79,6 +82,20 @@ class UserModel {
         });
     }
 
+    // Get all teachers
+    getAllTeachers() {
+        return new Promise((resolve, reject) => {
+            const q = 'select user_id, email, username, nickname, phone, avatar_path, course_year, gender, faculty.faculty_name from sysuser left join faculty On SysUser.faculty_id = faculty.faculty_id where role_id = 2';
+
+            db.query(q, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
     // Get all users by page with page info
     getAllUsersPagination(otherJoins, otherFields, order, search, page, limit) {
         otherJoins = sql.VarChar(otherJoins);
@@ -163,6 +180,61 @@ class UserModel {
                         reject(err);
                     } else {
                         resolve(result);
+                    }
+                });
+            } catch (err) {
+                console.error("Error processing users data:", err);
+                reject(err);
+            }
+        });
+    }
+    createTeachers = async (teachers, creatorId) => {
+
+        return new Promise(async (resolve, reject) => {
+            try {
+                const values = await Promise.all(teachers.map(async (teachers) => {
+                    const { 'Học Hàm': hocHam, 'Họ và Tên': hoVaTen, Email, Phone, 'Khoa': faculty, 'Khóa': course_year, Gender } = teachers;
+                    const nickname = `${hocHam} ${hoVaTen}`;
+                    const phoneStr = String(Phone);
+                    //password 3 số cuối sdt+ Ten(inhoa chữ đầu) + khóa (Guang vien)
+                    const last3DigitsOfPhone = phoneStr.slice(-3);
+                    const ten = hoVaTen.split(' ').pop();
+                    const firstNameNormalized = ten.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    const passwordPlain = `${last3DigitsOfPhone}${firstNameNormalized.charAt(0).toUpperCase() + firstNameNormalized.slice(1)}${course_year}`;
+                    const passwordHashed = await bcrypt.hash(passwordPlain, 10);
+
+                    const newFaculty = facultyList[faculty]
+                    const newGender = genderList[Gender]
+                    return [
+                        Email,
+                        passwordHashed,
+                        nickname,
+                        phoneStr,
+                        2,
+                        1,
+                        creatorId,
+                        course_year,
+                        newFaculty,
+                        newGender
+                    ];
+                }));
+                const placeholders = values.map(() => '(?, ?, ?, ?, ?, ?, ?, GETDATE() , ?, ?, ?)').join(',');
+                const q = `INSERT INTO SysUser (email, password, nickname, phone, role_id, status, creator_id, create_time, course_year, faculty_id, gender) VALUES ${placeholders}`;
+                const flattenedValues = values.flat();
+
+                db.query(q, flattenedValues, (err, result) => {
+                    if (err) {
+                        console.error("Error inserting users into database:", err);
+                        reject(err);
+                    } else {
+                        db.query('EXEC GenerateTeacherUsername', (err, procedureResult) => {
+                            if (err) {
+                                console.error("Error executing stored procedure:", err);
+                                reject(err);
+                            } else {
+                                resolve({ insertResult: result, procedureResult });
+                            }
+                        });
                     }
                 });
             } catch (err) {

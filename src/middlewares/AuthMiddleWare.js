@@ -20,7 +20,7 @@ class AuthMiddleware {
         // console.log(">>>>>>> user",user);
         if (!user) throw new ForbiddenError("KeyStore invalid");
 
-        const payload = jwt.verify(accessToken.split(" ")[1], user.privateKey);
+        const payload = jwt.verify(accessToken.split(" ")[1], user.publicKey);
         req.user = payload;
         next();
     }

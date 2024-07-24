@@ -7,7 +7,7 @@ const userRouterV1 = require('./v1/UserRouter');
 const authRouterV1 = require('./v1/AuthRouter');
 const courseRouterV1 = require('./v1/CourseRouter');
 const adminRouterV1 = require('./v1/AdminRouter');
-
+const classRoomRouterV1 = require('./v1/ClasssRoomRouter');
 router.use(session({
     secret: 'admin123',
     resave: false,
@@ -24,5 +24,6 @@ router.use('/v1/users', userRouterV1);
 router.use('/v1/auth', authRouterV1);
 router.use('/v1/courses', courseRouterV1);
 router.use('/v1/admin',adminRouterV1);
+router.use('/v1/classroom', classRoomRouterV1);
 
 module.exports = router;

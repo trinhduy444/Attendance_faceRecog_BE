@@ -47,3 +47,41 @@ BEGIN
 	PRINT @q
 	EXEC (@q)
 END
+
+--- Procedure auto teacher's username(Duy khong biet vì sao nó bị đỏ lè nên tắt comment add trong sql nhé Phước)
+
+-- CREATE PROCEDURE GenerateTeacherUsername
+-- AS
+-- BEGIN
+--     IF EXISTS (SELECT 1 FROM SysUser WHERE role_id = 2)
+--     BEGIN
+--         DECLARE @user_id NVARCHAR(50)
+--         DECLARE @faculty_id INT
+--         DECLARE @username NVARCHAR(50)
+
+--         DECLARE teacher_cursor CURSOR FOR
+--         SELECT user_id, faculty_id
+--         FROM SysUser
+--         WHERE role_id = 2
+
+--         OPEN teacher_cursor
+--         FETCH NEXT FROM teacher_cursor INTO @user_id, @faculty_id
+
+--         WHILE @@FETCH_STATUS = 0
+--         BEGIN
+--             SET @username = 'GV' + CAST(@faculty_id AS NVARCHAR(5)) + @user_id 
+            
+--             -- Update username for each teacher
+--             UPDATE SysUser
+--             SET username = @username
+--             WHERE user_id = @user_id
+
+--             FETCH NEXT FROM teacher_cursor INTO @user_id, @faculty_id
+--         END
+
+--         CLOSE teacher_cursor
+--         DEALLOCATE teacher_cursor
+--     END
+-- END
+
+-- EXEC GenerateTeacherUsername;
