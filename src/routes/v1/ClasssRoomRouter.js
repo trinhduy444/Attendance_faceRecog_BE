@@ -6,6 +6,10 @@ const authMiddleware = require('../../middlewares/AuthMiddleWare');
 
 router.post('/createClassRoom', authMiddleware.isLogin, authMiddleware.isAdmin, classRoomController.createRoom)
 router.post('/createClassRooms', authMiddleware.isLogin, authMiddleware.isAdmin, classRoomController.createRooms)
+
 router.post('/getRooms', authMiddleware.isLogin, authMiddleware.isAdmin, classRoomController.getClassRooms)
+router.post('/getClassRoomsFilter', authMiddleware.isLogin,authMiddleware.isAdmin, classRoomController.getClassRoomsFilter)
+router.post('/getShiftEmpty', authMiddleware.isLogin,authMiddleware.isAdmin, classRoomController.getShiftEmpty)
+
 
 module.exports = router;

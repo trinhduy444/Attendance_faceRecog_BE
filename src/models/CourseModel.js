@@ -8,7 +8,7 @@ class CourseModel {
         return new Promise((resolve, reject) => {
             const q = 'select top 1 * from course where course_code = ?';
             const params = [courseCode];
-            
+
             db.query(q, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -18,12 +18,12 @@ class CourseModel {
             });
         });
     }
-    
+
     // Get all courses
     getAllCourses() {
         return new Promise((resolve, reject) => {
             const q = 'select * from course';
-            
+
             db.query(q, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -33,7 +33,7 @@ class CourseModel {
             });
         });
     }
-    
+
     // Get all courses by page with page info
     getAllCoursesPagination(otherJoins, otherFields, order, search, page, limit) {
         otherJoins = sql.VarChar(otherJoins);
@@ -60,7 +60,7 @@ class CourseModel {
     // Add new course
     addCourse(course, userId) {
         let { courseCode, courseName, credit, description, status } = course;
-        
+
         courseCode = sql.VarChar(courseCode);
         courseName = sql.NVarChar(courseName);
         credit = sql.Int(credit);
@@ -117,6 +117,74 @@ class CourseModel {
             });
         });
     }
+
+    //Get Courses filter
+    getCoursesFilter(faculty_id, inputFilter, type, credit) {
+        return new Promise((resolve, reject) => {
+            let q = 'select Course.*, faculty.faculty_name from Course left join faculty on Course.faculty_id = faculty.faculty_id where status = 1'
+            const params = [];
+
+            if (faculty_id) {
+                q += ' and Course.faculty_id = ?';
+                params.push(faculty_id);
+            }
+            if (credit) {
+                q += ' and credit = ?';
+                params.push(credit);
+            }
+            // Add filtering based on type
+            if (type === 0 && inputFilter) {
+                q += ' and course_name LIKE ?';
+                params.push(`%${inputFilter}%`);
+            } else if (type === 1 && inputFilter) {
+                q += ' and course_code LIKE ?';
+                params.push(`%${inputFilter}%`);
+            }
+
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+    createCourseGroupStudentList(course_group_id, userId, creator_id) {
+        return new Promise((resolve, reject) => {
+            const q = 'INSERT INTO CourseGroupStudentList (course_group_id, student_id, status, creator_id, create_time) VALUES (?, ?, ?, ?, getdate())';
+            const params = [course_group_id, userId, 1, creator_id];
+            db.query(q, params, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+    }
+
+    createCourseGroup(course_code, group_code, teacher_id, total_student_qty, usersId, creator_id) {
+        return new Promise((resolve, reject) => {
+            const q = 'INSERT INTO CourseGroup (course_code, group_code, teacher_id, total_student_qty, status, creator_id, create_time) OUTPUT INSERTED.course_group_id VALUES (?, ?, ?, ?, ?, ?, getdate())';
+            const params = [course_code, group_code, teacher_id, total_student_qty, 1, creator_id];
+
+            db.query(q, params, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    const course_group_id = result[0].course_group_id; // Get the auto-generated course_group_id
+
+                    Promise.all(usersId.map(userid => this.createCourseGroupStudentList(course_group_id, userid, creator_id)))
+                        .then(() => resolve({ course_group_id, ...result[0] }))
+                        .catch(err => reject(err));
+                }
+            });
+        });
+    }
+
+
+
 }
 
 module.exports = new CourseModel;

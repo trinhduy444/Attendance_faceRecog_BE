@@ -19,7 +19,19 @@ class AdminController {
             metadata: users,
         })
     };
-
+    getUsersDetail = async (req, res) => {
+        const { faculty_id, inputFilter, type, genderFilter } = req.body;
+        if (req.user?.role_id !== 1) {
+            throw new ForbiddenError('You are not allowed');
+        }
+        const users = await userModel.getAllUsersDetail(faculty_id, inputFilter, type, genderFilter);
+        // console.log(users)
+        return res.status(200).json({
+            status: 200,
+            message: "Get Users Successfully",
+            metadata: users,
+        })
+    };
     getTeachers = async (req, res) => {
         if (req.user?.role_id !== 1) {
             throw new ForbiddenError('You are not allowed');
@@ -205,7 +217,19 @@ class AdminController {
             res.status(500).json({ message: 'Lỗi khi xử lý upload ảnh', error: error.message });
         }
     };
-
+    getTeachersByFaculty = async (req, res) => {
+        if (req.user?.role_id !== 1) {
+            throw new ForbiddenError('You are not allowed');
+        }
+        const faculty_id = req.query.faculty_id || 10010 
+        const teachers = await userModel.getAllTeachersByFaculty(faculty_id);
+        // console.log(users)
+        return res.status(200).json({
+            status: 200,
+            message: "Get Teachers Successfully",
+            metadata: teachers,
+        })
+    };
 }
 
 module.exports = new AdminController;

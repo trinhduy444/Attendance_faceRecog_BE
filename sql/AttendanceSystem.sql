@@ -294,3 +294,14 @@ ALTER TABLE Faculty
 ADD CONSTRAINT FK_Faculty_SysUser2 FOREIGN KEY (updater_id) REFERENCES SysUser(user_id);
 
 --- 3 So cuoi dien thoai + Ten khong dau (Chu cai dau viet hoa) + 4 so cuoi mssv
+
+--- Update new Create ClassRoomShift
+
+CREATE TABLE ClassRoomShift (
+    classroom_code VARCHAR(32),
+    shift_code VARCHAR(32),
+    status BIT DEFAULT 0,
+    PRIMARY KEY (classroom_code, shift_code),
+    FOREIGN KEY (classroom_code) REFERENCES Classroom(classroom_code),
+    FOREIGN KEY (shift_code) REFERENCES Shift(shift_code)
+);

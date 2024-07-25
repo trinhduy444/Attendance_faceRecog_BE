@@ -32,12 +32,14 @@ class ClassRoomController {
 
         try {
             const result = await classRoomModel.createRooms(rooms, user_id);
-            res.status(201).json({ status: 201, message: "Rooms processed successfully", created: result.arraySucces, skipped: result.arrayFail });
+            res.status(201).json({ status: 201, message: "Rooms processed successfully", created: result.arraySuccess, skipped: result.arrayFail });
         } catch (error) {
             console.error(error);
             res.status(500).json({ status: 500, message: "An error occurred while creating rooms" });
         }
-    }
+    };
+
+
     getClassRooms = async (req, res) => {
         try {
             const user_id = req.user.user_id;
@@ -58,7 +60,44 @@ class ClassRoomController {
                 message: "Internal server error",
             });
         }
-
+    }
+    getClassRoomsFilter = async (req, res) => {
+        try {
+            const user_id = req.user.user_id;
+            if (!user_id) throw new ForbiddenError("You not allowed")
+            const { building, capacity } = req.body;
+            const rooms = await classRoomModel.getClassRoomsFilter(building, capacity);
+            return res.status(200).json({
+                status: 200,
+                message: "Get rooms successfully",
+                metadata: rooms,
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: 500,
+                message: "Internal server error",
+            });
+        }
+    }
+    getShiftEmpty = async (req, res) => {
+        try {
+            const code = req.query.classroom || 'A101'
+            const user_id = req.user.user_id;
+            if (!user_id) throw new ForbiddenError("You not allowed")
+            const shifts = await classRoomModel.getShiftEmpty(code);
+            return res.status(200).json({
+                status: 200,
+                message: "Get empty shift successfully",
+                metadata: shifts,
+            });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({
+                status: 500,
+                message: "Internal server error",
+            });
+        }
     }
 }
 

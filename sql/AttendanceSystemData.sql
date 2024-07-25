@@ -102,3 +102,13 @@ INSERT INTO Course(course_code, course_name, credit, description, status, creato
 ('1001508', N'Đồ họa số', 2, N'Môn học Đồ họa số giúp sinh viên hiểu rõ về các khái niệm và công nghệ trong đồ họa số.', 1, 1, GETDATE(), 10015),
 ('1001509', N'Thiết kế đồ họa đa phương tiện', 3, N'Môn học Thiết kế đồ họa đa phương tiện tập trung vào việc phát triển kỹ năng thiết kế đồ họa đa phương tiện.', 1, 1, GETDATE(), 10015),
 ('1001510', N'Đồ họa và truyền thông', 3, N'Đồ họa và truyền thông là môn học giúp sinh viên hiểu về tầm quan trọng của đồ họa trong truyền thông.', 1, 1, GETDATE(), 10015);
+
+---- Update du lieu Shift
+insert into Shift(shift_code,start_time,end_time,break_hour,status,creator_id,create_time) VALUES
+('ca1','6h50','9h20','15',1,1,getDate()),
+('ca2','9h30','12h00','15',1,1,getDate()),
+('ca3','12h45','15h15','15',1,1,getDate()),
+('ca4','15h25','17h55','15',1,1,getDate()),
+('ca5','18h05','20h35','15',1,1,getDate())
+
+--

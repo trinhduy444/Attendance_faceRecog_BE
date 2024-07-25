@@ -50,6 +50,24 @@ class UserModel {
         });
     }
 
+    // Get user_id by username
+    getUserIdByUsername(username) {
+        username = sql.VarChar(username);
+        return new Promise((resolve, reject) => {
+            const q = 'select user_id from sysuser where username = ?';
+            const params = [username];
+
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+
     // Get user by email
     getUserByEmail(email) {
         email = sql.VarChar(email);
@@ -82,12 +100,61 @@ class UserModel {
         });
     }
 
+    // Get all users Detail
+    getAllUsersDetail(faculty_id, inputFilter, type, genderFilter) {
+        return new Promise((resolve, reject) => {
+            // Base query
+            let q = 'select user_id, email, username, nickname, phone, avatar_path, course_year, gender, faculty.faculty_name ' +
+                'from sysuser left join faculty On SysUser.faculty_id = faculty.faculty_id where role_id = 3';
+            const params = [];
+
+            if (faculty_id) {
+                q += ' and sysuser.faculty_id = ?';
+                params.push(faculty_id);
+            }
+            if (genderFilter) {
+                q += ' and gender = ?';
+                params.push(genderFilter);
+            }
+            // Add filtering based on type
+            if (type === 0 && inputFilter) {
+                q += ' and nickname LIKE ?';
+                params.push(`%${inputFilter}%`);
+            } else if (type === 1 && inputFilter) {
+                q += ' and username LIKE ?';
+                params.push(`%${inputFilter}%`);
+            }
+
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+
     // Get all teachers
     getAllTeachers() {
         return new Promise((resolve, reject) => {
             const q = 'select user_id, email, username, nickname, phone, avatar_path, course_year, gender, faculty.faculty_name from sysuser left join faculty On SysUser.faculty_id = faculty.faculty_id where role_id = 2';
 
             db.query(q, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+    getAllTeachersByFaculty(faculty_id) {
+        return new Promise((resolve, reject) => {
+            let q = 'select user_id, email, username, nickname from sysuser where role_id = 2 and faculty_id = ?';
+            const params = [faculty_id]
+            db.query(q, params, (err, rows) => {
                 if (err) {
                     reject(err);
                 } else {
@@ -128,7 +195,13 @@ class UserModel {
         });
         */
     }
-
+    //Get user_id from list
+    async getUserIdFromList(students) {
+        const arrUsersid = await Promise.all(students.map((user) => this.getUserIdByUsername(user.MSSV)))
+        const userIds = arrUsersid.map((user) => user[0].user_id);
+        return userIds;
+    }
+    // Create Multiple Users
     createUsers = async (users, creatorId) => {
 
         return new Promise(async (resolve, reject) => {

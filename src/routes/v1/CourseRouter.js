@@ -19,4 +19,9 @@ router.put('/', authMiddleware.isLogin, courseController.putCourse);
 // Delete course
 router.delete('/', authMiddleware.isLogin, courseController.deleteCourse);
 
+//Get Course filter
+router.post('/getCourseFilter', authMiddleware.isLogin, courseController.getCourseFilter)
+
+router.post('/createCourseGroup', authMiddleware.isLogin, courseController.createCourseGroup)
+
 module.exports = router;

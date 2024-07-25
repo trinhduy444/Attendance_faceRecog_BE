@@ -85,3 +85,30 @@ END
 -- END
 
 -- EXEC GenerateTeacherUsername;
+
+---- Tu dong insert ClassRoomShift khi thêm phòng học
+Go
+
+CREATE PROCEDURE InsertClassRoomWithShifts
+    @classroom_code NVARCHAR(32)
+AS
+BEGIN
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        -- Danh sách các shift code cần được thêm vào ClassRoomShift
+        DECLARE @shift_codes TABLE (shift_code NVARCHAR(10));
+        INSERT INTO @shift_codes (shift_code) VALUES
+            ('ca1'), ('ca2'), ('ca3'), ('ca4'), ('ca5');
+
+        -- Thực hiện chèn vào ClassRoomShift cho từng shift_code
+        INSERT INTO ClassRoomShift (classroom_code, shift_code, status)
+        SELECT @classroom_code, shift_code, 0
+        FROM @shift_codes;
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END;
