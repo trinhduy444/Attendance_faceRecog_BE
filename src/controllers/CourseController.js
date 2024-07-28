@@ -1,8 +1,8 @@
-const { BadRequestError } = require('../core/ErrorResponse');
+const { BadRequestError, ForbiddenError } = require('../core/ErrorResponse');
 const courseModel = require('../models/CourseModel');
 const userModel = require('../models/UserModel');
 const classRoomModel = require('../models/ClassRoomModel')
-
+const { redisClientInit } = require('../config/RedisConfig');
 class CourseController {
     getCourseByCode(req, res) {
         const { courseCode } = req.params;
@@ -145,20 +145,54 @@ class CourseController {
         }
         const { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students } = req.body;
         if (!course_code) throw new BadRequestError('course_code is required');
-        const usersId = await userModel.getUserIdFromList(students)
 
-        await courseModel.createCourseGroup(course_code, group_code, teacher_id, total_student_qty, usersId, req.user.role_id)
-            .then(async (data) => {
-                if (data) {
-                    await classRoomModel.setRoomNotEmpty(shift_code, classroom_code)
-                }
-            })
+        await classRoomModel.setRoomNotEmpty(shift_code, classroom_code, req.user.role_id).then(async (classroomshift_id) => {
+            const usersId = await userModel.getUserIdFromList(students)
+            await courseModel.createCourseGroup(classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, req.user.role_id)
+        })
+
         return res.status(201).json({
             status: 201,
             message: "Create CourseGroup Successfully",
 
         })
     }
+    getAllCoursesGroupById = async (req, res) => {
+        if (req.user?.role_id !== 2) {
+            return res.status(403).json({ error: 'You are not allowed' });
+        }
+
+        const teacher_id = req.user.user_id;
+        const data = await courseModel.getCourseGroupByTeacherId(teacher_id);
+        return res.status(200).json({
+            status: 200,
+            message: "Get Course Group Successfully",
+            metadata: data
+        })
+        // const cacheKey = `teacher_course_info_${teacher_id}`;
+        // try {
+        //     const cachedData = await redisClient.get(cacheKey);
+        //     if (cachedData) {
+        //         // Lấy dữ liệu từ Redis cache
+        //         const data = JSON.parse(cachedData);
+        //         return res.status(200).json({
+        //             status: 200,
+        //             message: "Get Course Group Successfully",
+        //             metadata: data
+        //         })
+        //     } else {
+        //         const data = await courseModel.getCourseGroupByTeacherId(teacher_id);
+        //         await redisClient.set(cacheKey, JSON.stringify(data));
+        //         return res.status(200).json({
+        //             status: 200,
+        //             message: "Get Course Group Successfully",
+        //             metadata: data
+        //         })
+        //     }
+        // } catch (error) {
+        //     console.error('Error fetching data:', error);
+        // }
+    };
 }
 
 module.exports = new CourseController;

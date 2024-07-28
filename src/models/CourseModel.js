@@ -164,16 +164,16 @@ class CourseModel {
         });
     }
 
-    createCourseGroup(course_code, group_code, teacher_id, total_student_qty, usersId, creator_id) {
+    createCourseGroup(classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, creator_id) {
         return new Promise((resolve, reject) => {
-            const q = 'INSERT INTO CourseGroup (course_code, group_code, teacher_id, total_student_qty, status, creator_id, create_time) OUTPUT INSERTED.course_group_id VALUES (?, ?, ?, ?, ?, ?, getdate())';
-            const params = [course_code, group_code, teacher_id, total_student_qty, 1, creator_id];
+            const q = 'INSERT INTO CourseGroup (course_code, group_code, teacher_id, total_student_qty, status, creator_id, create_time,classroomshift_id) OUTPUT INSERTED.course_group_id VALUES (?, ?, ?, ?, ?, ?, getdate(),?)';
+            const params = [course_code, group_code, teacher_id, total_student_qty, 1, creator_id, classroomshift_id];
 
             db.query(q, params, (err, result) => {
                 if (err) {
                     reject(err);
                 } else {
-                    const course_group_id = result[0].course_group_id; // Get the auto-generated course_group_id
+                    const course_group_id = result[0].course_group_id;
 
                     Promise.all(usersId.map(userid => this.createCourseGroupStudentList(course_group_id, userid, creator_id)))
                         .then(() => resolve({ course_group_id, ...result[0] }))
@@ -183,7 +183,20 @@ class CourseModel {
         });
     }
 
-
+    getCourseGroupByTeacherId(teacher_id) {
+        return new Promise((resolve, reject) => {
+            const q = 'EXEC GetTeacherCourseInfo @teacher_id = ?'
+            const params = [teacher_id]
+            db.query(q,params,(err,result) =>{
+                if(err){
+                    reject(err)
+                }else{
+                    console.log("data hehe:",result)
+                    resolve(result)
+                }
+            })
+        })
+    }
 
 }
 

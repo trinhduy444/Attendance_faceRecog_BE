@@ -10,7 +10,7 @@ class ClassRoomModel {
                 if (err) {
                     reject(err);
                 } else {
-                    db.query('EXEC InsertClassRoomWithShifts @classroom_code = ?', [classroom_code], (err, result) => {
+                    db.query('EXEC InsertClassRoomWithShifts @classroom_code = ?, @creator_id = ?', [classroom_code, user_id], (err, result) => {
                         if (err) {
                             console.error('Error executing stored procedure:', err);
                             reject(err);
@@ -105,16 +105,27 @@ class ClassRoomModel {
         });
     }
 
-    setRoomNotEmpty(shift_code, classroom_code) {
+    setRoomNotEmpty(shift_code, classroom_code, updater_id) {
         return new Promise((resolve, reject) => {
-            const q = 'update ClassRoomShift set status = 1 where shift_code = ? and classroom_code = ? ';
-            const params = [shift_code, classroom_code];
-            db.query(q, params, (err, rows) => {
-                if (err) reject(err);
-                resolve(rows);
+            const q = `
+                UPDATE ClassRoomShift
+                SET status = 1,
+                updater_id = ?,
+                update_time = getDAtE()
+                OUTPUT inserted.classroomshift_id
+                WHERE shift_code = ? AND classroom_code = ?
+            `;
+            const params = [updater_id, shift_code, classroom_code];
+
+            db.query(q, params, (err, result) => {
+                if (err) {
+                    return reject(err);
+                }
+                resolve(result[0].classroomshift_id);
             });
         });
     }
+
 }
 
 module.exports = new ClassRoomModel();

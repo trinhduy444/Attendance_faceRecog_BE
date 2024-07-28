@@ -29,6 +29,18 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(helmet());
 
+// const initRedist = require('./config/RedisConfig');
+// initRedist.initRedist()
+// const client = initRedist.getRedist().instanceConnect;
+
+// client.on('connect', () => {
+//     console.log('Redis client connected');
+// });
+
+// client.on('error', (err) => {
+//     console.error('Redis client error', err);
+// });
+
 
 // Init API Router
 const apiRouter = require('./routes/ApiRouter');

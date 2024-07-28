@@ -10,6 +10,6 @@ const server = (() => {
 
 
 
-process.on(`SIGINT`, () => {
-    server.close(() => console.log(`Exit MSV eCommerce server`))
-})
+// process.on(`SIGINT`, () => {
+//     server.close(() => console.log(`Exit MSV eCommerce server`))
+// })

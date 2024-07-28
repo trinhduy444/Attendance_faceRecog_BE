@@ -266,8 +266,8 @@ CREATE TABLE Faculty
 (
 	[faculty_id] INT NOT NULL PRIMARY KEY,
 	[faculty_name] NVARCHAR(256) NOT NULL,
-	[creator_id]  INT NOT NULL,
-	[updater_id]  INT NOT NULL,
+	[creator_id] INT NOT NULL,
+	[updater_id] INT NOT NULL,
 	[create_time] DATETIME NULL,
 	[update_time] DATETIME NULL,
 )
@@ -296,12 +296,46 @@ ADD CONSTRAINT FK_Faculty_SysUser2 FOREIGN KEY (updater_id) REFERENCES SysUser(u
 --- 3 So cuoi dien thoai + Ten khong dau (Chu cai dau viet hoa) + 4 so cuoi mssv
 
 --- Update new Create ClassRoomShift
-
-CREATE TABLE ClassRoomShift (
-    classroom_code VARCHAR(32),
-    shift_code VARCHAR(32),
-    status BIT DEFAULT 0,
-    PRIMARY KEY (classroom_code, shift_code),
-    FOREIGN KEY (classroom_code) REFERENCES Classroom(classroom_code),
-    FOREIGN KEY (shift_code) REFERENCES Shift(shift_code)
+CREATE TABLE ClassRoomShift
+(
+	classroomshift_id INT IDENTITY(1, 1) NOT NULL,
+	classroom_code VARCHAR(32),
+	shift_code VARCHAR(32),
+	status BIT DEFAULT 0,
+	[creator_id] INT NULL,
+	[updater_id] INT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL,
+	FOREIGN KEY (classroom_code) REFERENCES Classroom(classroom_code),
+	FOREIGN KEY (shift_code) REFERENCES Shift(shift_code)
 );
+ALTER TABLE ClassRoomShift ADD CONSTRAINT PK_ClassRoomShift PRIMARY KEY CLUSTERED(classroomshift_id) ON [PRIMARY]
+
+-- Update 26/07
+ALTER TABLE CourseGroup
+ADD classroomshift_id INT UNIQUE
+
+ALTER TABLE CourseGroup
+ADD CONSTRAINT FK_CourseGroup_ClassRoomShift2 FOREIGN KEY (classroomshift_id) REFERENCES ClassRoomShift(classroomshift_id);
+
+--- Update PostGroup - cac bài đăng trong nhóm
+
+CREATE TABLE PostGroup
+(
+	post_id INT IDENTITY(1, 1) NOT NULL,
+	course_group_id INT,
+	title NVARCHAR(256) NOT NULL,
+	content NVARCHAR(1024) NOT NULL,
+	file_link VARCHAR(256),
+	status BIT DEFAULT 0,
+	[creator_id] INT NULL,
+	[updater_id] INT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL,
+	FOREIGN KEY (course_group_id) REFERENCES CourseGroup(course_group_id),
+
+);
+ALTER TABLE PostGroup ADD CONSTRAINT PK_PostGroup PRIMARY KEY CLUSTERED(post_id) ON [PRIMARY]
+
+ALTER TABLE PostGroup
+ADD CONSTRAINT FK_PostGroup_CourseGroup FOREIGN KEY (course_group_id) REFERENCES CourseGroup(course_group_id);

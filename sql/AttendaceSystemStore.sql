@@ -90,20 +90,28 @@ END
 Go
 
 CREATE PROCEDURE InsertClassRoomWithShifts
-    @classroom_code NVARCHAR(32)
+	@classroom_code NVARCHAR(32),
+	@creator_id INT
 AS
 BEGIN
-    BEGIN TRANSACTION;
-    BEGIN TRY
+	BEGIN TRANSACTION;
+	BEGIN TRY
         -- Danh sách các shift code cần được thêm vào ClassRoomShift
-        DECLARE @shift_codes TABLE (shift_code NVARCHAR(10));
-        INSERT INTO @shift_codes (shift_code) VALUES
-            ('ca1'), ('ca2'), ('ca3'), ('ca4'), ('ca5');
+        DECLARE @shift_codes TABLE (shift_code VARCHAR(32));
+        INSERT INTO @shift_codes
+		(shift_code)
+	VALUES
+		('ca1'),
+		('ca2'),
+		('ca3'),
+		('ca4'),
+		('ca5');
 
         -- Thực hiện chèn vào ClassRoomShift cho từng shift_code
-        INSERT INTO ClassRoomShift (classroom_code, shift_code, status)
-        SELECT @classroom_code, shift_code, 0
-        FROM @shift_codes;
+        INSERT INTO ClassRoomShift
+		(classroom_code, shift_code, status, creator_id,create_time)
+	SELECT @classroom_code, shift_code, 0, @creator_id, getDate()
+	FROM @shift_codes;
 
         COMMIT TRANSACTION;
     END TRY
@@ -112,3 +120,33 @@ BEGIN
         THROW;
     END CATCH
 END;
+
+--- Procedure để lấy dữ liệu coursegroup theo giảng viên
+
+Go
+
+CREATE PROCEDURE GetTeacherCourseInfo
+	@teacher_id INT
+AS
+BEGIN
+	SELECT
+		cg.course_group_id,
+		cg.group_code,
+		cg.classroomshift_id,
+		c.course_name,
+		su.avatar_path,
+		su.nickname,
+		cls.classroom_code,
+		cls.shift_code
+	FROM
+		CourseGroup cg
+		INNER JOIN Course c ON cg.course_code = c.course_code
+		INNER JOIN sysUser su ON cg.teacher_id = su.user_id
+		INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
+	WHERE 
+        cg.teacher_id = @teacher_id;
+END;
+
+
+-- Example
+-- EXEC GetTeacherCourseInfo @teacher_id = 182;
