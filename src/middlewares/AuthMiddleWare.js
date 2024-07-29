@@ -47,6 +47,16 @@ class AuthMiddleware {
         return next();
     }
 
+    isTeacherOrAdmin(req, res, next) {
+        if (req.user.role_id != 1 && req.user.role_id != 2) {
+            return res.status(401).json({
+                'status': 401,
+                'message': 'Unauthorized user.',
+                'data': {}
+            });
+        }
+        return next();
+    }
 }
 
 module.exports = new AuthMiddleware;
