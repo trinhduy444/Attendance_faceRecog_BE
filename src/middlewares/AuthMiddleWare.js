@@ -24,7 +24,7 @@ class AuthMiddleware {
     }
 
     isAdmin(req, res, next) {
-        this.isLogin(req, res, next)
+        // this.isLogin(req, res, next)
 
         if (req.user.role_id != 1) {
             return res.status(401).json({
