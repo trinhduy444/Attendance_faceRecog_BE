@@ -1,158 +1,67 @@
-CREATE PROCEDURE TableLoadingPagination
-	@Table VARCHAR(32),
-	@OtherJoins VARCHAR(4000) = '',
-	@OtherFields VARCHAR(4000) = '',
-	@Order VARCHAR(4000) = '',
-	@Search VARCHAR(4000) = '',
-	@PageNumber INT = 1,
-	@RowPerPage INT = 50
-AS
-BEGIN
-	DECLARE @q NVARCHAR(MAX), @Offset INT
-	SELECT @Offset = (@PageNumber - 1) * @RowPerPage
-
-	IF @OtherFields <> '' SET @OtherFields = ', ' + @OtherFields
-	-- Default value
-	IF @Order = '' SET @Order = '1'
-	IF @Search = '' SET @Search = '(1=1)'
-	IF @PageNumber <= 0 SET @PageNumber = 1
-	IF @RowPerPage <= 0 SET @RowPerPage = 50
-
-	SET @q = '
-		-- Page data
-		select a.* @@OtherFields
-			into #v from @@table a @@OtherJoins
-			where @@Search
-			order by @@Order
-		offset @@Offset rows fetch next @@RowPerPage rows only
-	
-		select * from #v order by @@Order
-
-		-- Page info
-		declare @TotalPage int, @PageTotalRow int, @TotalRow int
-		
-		select @PageTotalRow = count(1) from #v
-		select @TotalRow = count(1) from @@table
-		select @TotalPage = ceiling((1.0 * @TotalRow) / @@RowPerPage)
-
-		select iif(@TotalPage = 0, 1, @TotalPage) as total_page, @PageTotalRow as page_total_row, @TotalRow as total_row
-		drop table #v
-	'
-
-	-- Replace params
-	SET @q = REPLACE(@q, '@@table', @Table)
-	SET @q = REPLACE(REPLACE(@q, '@@OtherJoins', @OtherJoins), '@@OtherFields', @OtherFields)
-	SET @q = REPLACE(REPLACE(@q, '@@Order', @Order), '@@Search', @Search)
-	SET @q = REPLACE(REPLACE(@q, '@@RowPerPage', RTRIM(@RowPerPage)), '@@Offset', RTRIM(@Offset))
-	PRINT @q
-	EXEC (@q)
-END
+28/07/2024
+-- Update add 
+ALTER TABLE Attendance DROP COLUMN attendance_id
+ALTER TABLE Attendance ADD [attend_yn] BIT NOT NULL
 GO
 
---- Procedure auto teacher's username(Duy khong biet vì sao nó bị đỏ lè nên tắt comment add trong sql nhé Phước)
-
--- CREATE PROCEDURE GenerateTeacherUsername
--- AS
--- BEGIN
---     IF EXISTS (SELECT 1 FROM SysUser WHERE role_id = 2)
---     BEGIN
---         DECLARE @user_id NVARCHAR(50)
---         DECLARE @faculty_id INT
---         DECLARE @username NVARCHAR(50)
-
---         DECLARE teacher_cursor CURSOR FOR
---         SELECT user_id, faculty_id
---         FROM SysUser
---         WHERE role_id = 2
-
---         OPEN teacher_cursor
---         FETCH NEXT FROM teacher_cursor INTO @user_id, @faculty_id
-
---         WHILE @@FETCH_STATUS = 0
---         BEGIN
---             SET @username = 'GV' + CAST(@faculty_id AS NVARCHAR(5)) + @user_id 
-            
---             -- Update username for each teacher
---             UPDATE SysUser
---             SET username = @username
---             WHERE user_id = @user_id
-
---             FETCH NEXT FROM teacher_cursor INTO @user_id, @faculty_id
---         END
-
---         CLOSE teacher_cursor
---         DEALLOCATE teacher_cursor
---     END
--- END
-
--- EXEC GenerateTeacherUsername;
-
----- Tu dong insert ClassRoomShift khi thêm phòng học
-Go
-
-CREATE PROCEDURE InsertClassRoomWithShifts
-	@classroom_code NVARCHAR(32),
-	@creator_id INT
-AS
-BEGIN
-	BEGIN TRANSACTION;
-	BEGIN TRY
-        -- Danh sách các shift code cần được thêm vào ClassRoomShift
-        DECLARE @shift_codes TABLE (shift_code VARCHAR(32));
-        INSERT INTO @shift_codes
-		(shift_code)
-	VALUES
-		('ca1'),
-		('ca2'),
-		('ca3'),
-		('ca4'),
-		('ca5');
-
-        -- Thực hiện chèn vào ClassRoomShift cho từng shift_code
-        INSERT INTO ClassRoomShift
-		(classroom_code, shift_code, status, creator_id,create_time)
-	SELECT @classroom_code, shift_code, 0, @creator_id, getDate()
-	FROM @shift_codes;
-
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        ROLLBACK TRANSACTION;
-        THROW;
-    END CATCH
-END;
-
---- Procedure để lấy dữ liệu coursegroup theo giảng viên
-
-Go
-
-CREATE PROCEDURE GetTeacherCourseInfo
-	@teacher_id INT
-AS
-BEGIN
-	SELECT
-		cg.course_group_id,
-		cg.group_code,
-		cg.classroomshift_id,
-		c.course_name,
-		su.avatar_path,
-		su.nickname,
-		cls.classroom_code,
-		cls.shift_code
-	FROM
-		CourseGroup cg
-		INNER JOIN Course c ON cg.course_code = c.course_code
-		INNER JOIN sysUser su ON cg.teacher_id = su.user_id
-		INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
-	WHERE 
-        cg.teacher_id = @teacher_id;
-END;
+-- Dữ liệu phòng học
+INSERT INTO Classroom(classroom_code, capacity, floor, description, status, creator_id, updater_id, create_time, update_time) VALUES
+	('C201', 50, 2, 'Phòng học có máy chiếu', 1, 1, 1, '2024-07-28 18:42:33.567', '2024-07-28 18:42:33.567'),
+	('C202', 50, 2, 'Phòng học có máy chiếu', 1, 1, 1, '2024-07-28 18:42:33.567', '2024-07-28 18:42:33.567'),
+	('C203', 50, 2, 'Phòng học có máy chiếu', 1, 1, 1, '2024-07-28 18:42:33.567', '2024-07-28 18:42:33.567'),
+	('C204', 50, 2, 'Phòng học có máy chiếu', 1, 1, 1, '2024-07-28 18:42:33.567', '2024-07-28 18:42:33.567'),
+	('C205', 50, 2, 'Phòng học có máy chiếu', 1, 1, 1, '2024-07-28 18:42:33.567', '2024-07-28 18:42:33.567')
 GO
 
--- Example
--- EXEC GetTeacherCourseInfo @teacher_id = 182;
+-- Thêm người dùng để test
+SET IDENTITY_INSERT SysUser ON
+INSERT INTO SysUser(user_id, email, username, password, nickname, phone, avatar_path, face_image_path, role_id, status, creator_id, updater_id, create_time, update_time) VALUES
+	(899, 'tranvana@gmail.com', 'admin', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Trần Văn A', '0123456789', '', '', 2, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
+	(900, '52000900@gmail.com', '52000900', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Nguyễn Ðức Quyền', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
+	(901, '52000901@gmail.com', '52000901', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Mã Công Hoán', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
+	(902, '52000902@gmail.com', '52000902', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Hoàng Chiêu Phong', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
+	(903, '52000903@gmail.com', '52000903', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Thái Hồng Thư', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
+	(904, '52000904@gmail.com', '52000904', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Vũ Lệ Khánh', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
+	(905, '52000905@gmail.com', '52000905', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Đỗ Ái Hồng', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567')
+SET IDENTITY_INSERT SysUser OFF
 
+-- Dữ liệu thời gian ca học
+SET IDENTITY_INSERT ClassRoomShift ON
+INSERT INTO ClassRoomShift(classroomshift_id, classroom_code, shift_code, status, creator_id, updater_id, create_time, update_time) VALUES
+	(201, 'C201', 'ca1', 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
+	(202, 'C202', 'ca1', 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
+	(203, 'C203', 'ca1', 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
+	(204, 'C204', 'ca1', 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230')
+SET IDENTITY_INSERT ClassRoomShift OFF
 GO
+
+-- Dữ liệu nhóm môn học
+SET IDENTITY_INSERT CourseGroup ON
+INSERT INTO CourseGroup(course_group_id, course_code, group_code, teacher_id, classroomshift_id, total_student_qty, status, creator_id, updater_id, create_time, update_time) VALUES
+	(100, '1001002', 'N1', 899, 201, 6, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230')
+SET IDENTITY_INSERT CourseGroup OFF
+GO
+
+-- Dữ liệu danh sách sinh viên nhóm môn học
+INSERT INTO CourseGroupStudentList(course_group_id, student_id, total_absent, ban_yn, status, creator_id, updater_id, create_time, update_time) VALUES
+	(100, 900, 0, 0, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
+	(100, 901, 0, 0, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
+	(100, 902, 0, 0, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
+	(100, 903, 0, 0, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
+	(100, 904, 0, 0, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
+	(100, 905, 0, 0, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230')
+GO
+
+-- Dữ liệu điểm danh để test
+INSERT INTO AttendanceRawData(student_id, course_group_id, attend_date, attend_type, attend_time, attend_image_path, creator_id, create_time) VALUES
+	(900, 100, '20240728', 0, '06:30', '', 899, '2024-07-28 18:11:02.230'),
+	(901, 100, '20240728', 0, '06:30', '', 899, '2024-07-28 18:11:02.230'),
+	(902, 100, '20240728', 0, '06:30', '', 899, '2024-07-28 18:11:02.230'),
+	(903, 100, '20240728', 0, '06:30', '', 899, '2024-07-28 18:11:02.230'),
+	(904, 100, '20240728', 0, '06:30', '', 899, '2024-07-28 18:11:02.230'),
+	(905, 100, '20240728', 0, '06:30', '', 899, '2024-07-28 18:11:02.230')
+GO
+
 -- Store kéo dữ liệu từ dữ liệu thô sang bảng điểm danh chính
 CREATE PROCEDURE UpdateAttendanceFromRawData
 	@course_group_id INT,
@@ -196,6 +105,11 @@ BEGIN
 
 	DROP TABLE #student, #tmp, #data
 END
+GO
+-- Lệnh để chạy test
+--EXEC UpdateAttendanceFromRawData 100, '2024-07-29', 1
+--'2024-07-28'
+SELECT * FROM Attendance
 GO
 
 -- View tạo để lấy dữ liệu (Nếu chỉ join thì không cần viết store á Duy)
