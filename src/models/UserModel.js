@@ -32,7 +32,6 @@ class UserModel {
             });
         });
     }
-
     // Get user by username
     getUserByUsername(username) {
         username = sql.VarChar(username);

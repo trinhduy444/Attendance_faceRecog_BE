@@ -157,7 +157,7 @@ class CourseController {
 
         })
     }
-    getAllCoursesGroupById = async (req, res) => {
+    getAllCoursesGroupByTeacherId = async (req, res) => {
         if (req.user?.role_id !== 2) {
             return res.status(403).json({ error: 'You are not allowed' });
         }
@@ -193,6 +193,66 @@ class CourseController {
         //     console.error('Error fetching data:', error);
         // }
     };
+    getAllCoursesGroupByStudentId = async (req, res) => {
+
+        const student_id = req.user.user_id;
+        if (!student_id) throw new ForbiddenError("Pls login required")
+        try {
+            const data = await courseModel.getCourseGroupByStudentId(student_id);
+            return res.status(200).json({
+                status: 200,
+                message: "Get Course Group Successfully",
+                metadata: data
+            })
+        } catch (err) {
+            return res.status(400).json({
+                status: 400,
+                message: "Somthing went wrong!"
+            })
+        }
+    };
+    getInfoCourseGroup = async (req, res) => {
+        const { course_group_id } = req.params;
+        if (!course_group_id) throw new BadRequestError("Invalid Course Group");
+        try {
+            const data = await courseModel.getInfoCourseGroup(course_group_id);
+            return res.status(200).json({
+                status: 200,
+                message: "Get Info Course Group Successfully",
+                metadata: data[0]
+            })
+        } catch (err) {
+            return res.status(400).json({
+                status: 400,
+                message: "Somthing went wrong!"
+            })
+        }
+    }
+    checkInCourseGroup = async (req, res) => {
+        const user_id = req.user.user_id;
+        const { course_group_id } = req.params;
+        if (!user_id) throw new ForbiddenError("Pls Login");
+        try {
+            const result = await courseModel.checkInCourseGroup(course_group_id, user_id);
+            if (result === true) {
+                return res.status(200).json({
+                    status: 200,
+                    message: "Ok, you can access to the course group"
+                })
+            }
+            else {
+                return res.status(400).json({
+                    status: 400,
+                    message: "Fail, you are not allowed to access this course group"
+                })
+            }
+        } catch (err) {
+            return res.status(400).json({
+                status: 400,
+                message: "Somthing went wrong!"
+            })
+        }
+    }
 }
 
 module.exports = new CourseController;

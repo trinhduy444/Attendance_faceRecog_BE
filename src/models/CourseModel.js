@@ -187,17 +187,71 @@ class CourseModel {
         return new Promise((resolve, reject) => {
             const q = 'EXEC GetTeacherCourseInfo @teacher_id = ?'
             const params = [teacher_id]
-            db.query(q,params,(err,result) =>{
-                if(err){
+            db.query(q, params, (err, result) => {
+                if (err) {
                     reject(err)
-                }else{
-                    console.log("data hehe:",result)
+                } else {
                     resolve(result)
                 }
             })
         })
     }
+    getCourseGroupByStudentId(student_id) {
+        return new Promise((resolve, reject) => {
+            const q = 'EXEC GetCourseGroupInfoByStudentId @student_id = ?'
+            const params = [student_id]
+            db.query(q, params, (err, result) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(result)
+                }
+            })
+        })
+    }
+    getInfoCourseGroup(course_group_id) {
+        return new Promise((resolve, reject) => {
+            const q = `SELECT
+                cg.course_code,
+                cg.teacher_id,
+                cg.group_code,
+                c.course_name,
+                su.nickname
+            FROM
+                CourseGroup cg
+                INNER JOIN Course c ON cg.course_code = c.course_code
+                INNER JOIN sysUser su ON cg.teacher_id = su.user_id
+            WHERE
+            cg.course_group_id = ?;
+            `
+            const params = [course_group_id]
+            db.query(q, params, (err, result) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(result)
+                }
+            })
+        })
+    }
+    checkInCourseGroup(courseGroupId, studentId) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT COUNT(*) AS count
+                FROM CourseGroupStudentList
+                WHERE course_group_id = ? AND student_id = ?;
+            `;
 
+            db.query(query, [courseGroupId, studentId], (err, results) => {
+                if (err) return reject(err);
+                if (results[0].count > 0) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    };
 }
 
 module.exports = new CourseModel;

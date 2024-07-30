@@ -137,6 +137,7 @@ BEGIN
 		c.course_name,
 		su.avatar_path,
 		su.nickname,
+		su.avatar_path,
 		cls.classroom_code,
 		cls.shift_code
 	FROM
@@ -298,3 +299,28 @@ GO
 
 EXEC AttendanceDetailReport 100
 GO
+
+--- Store để lấy course group cho sinh viên Update (30/07)
+Go 
+CREATE PROCEDURE GetCourseGroupInfoByStudentId
+    @student_id INT
+AS
+BEGIN
+    SELECT 
+        cg.course_group_id,
+        cg.group_code,
+        cls.classroom_code,
+        su.nickname,
+		su.avatar_path,
+        c.course_name
+    FROM
+        CourseGroupStudentList cgsl
+    INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
+    INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
+    INNER JOIN sysUser su ON cg.teacher_id = su.user_id
+    INNER JOIN Course c ON cg.course_code = c.course_code
+    WHERE 
+        cgsl.student_id = @student_id;
+END;
+
+-- EXEC GetCourseGroupInfoByStudentId @student_id = 72;

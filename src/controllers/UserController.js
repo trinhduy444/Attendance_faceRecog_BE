@@ -75,6 +75,9 @@ class UserController {
         })
 
     }
+    getSomeInfo(req, res) {
+        
+    }
 }
 
 module.exports = new UserController;

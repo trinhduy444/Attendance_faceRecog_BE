@@ -10,6 +10,7 @@ const adminRouterV1 = require('./v1/AdminRouter');
 const classRoomRouterV1 = require('./v1/ClasssRoomRouter');
 const postRouterV1 = require('./v1/PostRouter');
 const attendanceRouterV1 = require('./v1/AttendanceRouter');
+const commentRouterV1 = require('./v1/CommentRouter');
 
 router.use(session({
     secret: 'admin123',
@@ -30,5 +31,6 @@ router.use('/v1/admin', adminRouterV1);
 router.use('/v1/classroom', classRoomRouterV1);
 router.use('/v1/post', postRouterV1);
 router.use('/v1/attendances', attendanceRouterV1);
+router.use('/v1/comment', commentRouterV1)
 
 module.exports = router;

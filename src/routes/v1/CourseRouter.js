@@ -24,8 +24,12 @@ router.post('/getCourseFilter', authMiddleware.isLogin, courseController.getCour
 
 router.post('/createCourseGroup', authMiddleware.isLogin, courseController.createCourseGroup)
 
-router.post('/getCourseGroupByTeacher', authMiddleware.isLogin, courseController.getAllCoursesGroupById)
+router.post('/getCourseGroupByTeacher', authMiddleware.isLogin, courseController.getAllCoursesGroupByTeacherId)
 
-router.post('/getCourseGroupByStudent', authMiddleware.isLogin, courseController.getAllCoursesGroupById)
+router.post('/getCourseGroupByStudent', authMiddleware.isLogin, courseController.getAllCoursesGroupByStudentId)
+
+router.get('/getInfoCourseGroup/:course_group_id', courseController.getInfoCourseGroup)
+
+router.post('/checkAccessCourseGroup/:course_group_id', authMiddleware.isLogin, courseController.checkInCourseGroup)
 
 module.exports = router;
