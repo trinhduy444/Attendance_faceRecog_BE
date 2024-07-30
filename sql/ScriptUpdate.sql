@@ -1,4 +1,4 @@
-28/07/2024
+-- 28/07/2024
 -- Update add 
 ALTER TABLE Attendance DROP COLUMN attendance_id
 ALTER TABLE Attendance ADD [attend_yn] BIT NOT NULL
