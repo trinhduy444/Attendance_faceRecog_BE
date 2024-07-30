@@ -218,17 +218,23 @@ class AdminController {
         }
     };
     getTeachersByFaculty = async (req, res) => {
-        if (req.user?.role_id !== 1) {
-            throw new ForbiddenError('You are not allowed');
+        try {
+            if (req.user?.role_id !== 1) {
+                throw new ForbiddenError('You are not allowed');
+            }
+            const faculty_id = parseInt(req.params.faculty_id) || 10010
+            const teachers = await userModel.getAllTeachersByFaculty(faculty_id);
+            // console.log(users)
+            return res.status(200).json({
+                status: 200,
+                message: "Get Teachers Successfully",
+                metadata: teachers,
+            })
+        } catch (err) {
+            res.status(500).json({ message: 'Error when getting Teachers By Faculty', error: err.message });
+
         }
-        const faculty_id = req.query.faculty_id || 10010 
-        const teachers = await userModel.getAllTeachersByFaculty(faculty_id);
-        // console.log(users)
-        return res.status(200).json({
-            status: 200,
-            message: "Get Teachers Successfully",
-            metadata: teachers,
-        })
+
     };
 }
 

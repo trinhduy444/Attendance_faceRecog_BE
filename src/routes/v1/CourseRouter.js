@@ -26,4 +26,6 @@ router.post('/createCourseGroup', authMiddleware.isLogin, courseController.creat
 
 router.post('/getCourseGroupByTeacher', authMiddleware.isLogin, courseController.getAllCoursesGroupById)
 
+router.post('/getCourseGroupByStudent', authMiddleware.isLogin, courseController.getAllCoursesGroupById)
+
 module.exports = router;
