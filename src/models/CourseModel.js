@@ -150,6 +150,18 @@ class CourseModel {
             });
         });
     }
+    // Get All CourseGroup
+    getAllCourseGroupActive() {
+        return new Promise((resolve, reject) => {
+            const q = 'SELECT * FROM ActiveCourseGroups'
+            db.query(q, (err, rows) => {
+                if (err) {
+                    reject(err)
+
+                } else { resolve(rows) };
+            })
+        });
+    }
     createCourseGroupStudentList(course_group_id, userId, creator_id) {
         return new Promise((resolve, reject) => {
             const q = 'INSERT INTO CourseGroupStudentList (course_group_id, student_id, status, creator_id, create_time) VALUES (?, ?, ?, ?, getdate())';

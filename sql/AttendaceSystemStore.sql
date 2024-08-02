@@ -300,7 +300,8 @@ GO
 EXEC AttendanceDetailReport 100
 GO
 
---- Store để lấy course group cho sinh viên Update (30/07)
+--- Store để lấy course group cho sinh viên Update (30/07) | Duy có update ở trên là trả về thêm avatar_path ở GetTeacherCourseInfo
+-- 31/07
 Go 
 CREATE PROCEDURE GetCourseGroupInfoByStudentId
     @student_id INT
@@ -324,3 +325,21 @@ BEGIN
 END;
 
 -- EXEC GetCourseGroupInfoByStudentId @student_id = 72;
+
+-- 01/08 -- Xem các course group đang hoạt động
+Go
+CREATE VIEW ActiveCourseGroups AS
+SELECT 
+    cg.course_group_id,
+    cg.course_code,
+    cg.group_code,
+    c.course_name
+FROM 
+    CourseGroup cg
+INNER JOIN 
+    Course c ON cg.course_code = c.course_code
+WHERE 
+    cg.status = 1;
+
+Go
+Select * from ActiveCourseGroups

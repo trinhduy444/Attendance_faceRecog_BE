@@ -237,9 +237,9 @@ CREATE TABLE SysNotify
 (
 	[notify_id] INT IDENTITY(1, 1) NOT NULL,
 	[sender_id] INT NULL,
-	[receiver_id] INT NULL,
 	[title] NVARCHAR(256) NULL,
-	[content] NVARCHAR(1024) NULL,
+	[content] NVARCHAR(2048) NULL,
+	[file_link] VARCHAR(256),
 	[ref_id] INT NULL,
 	[ref_table] VARCHAR(32) NULL,
 	[status] BIT NULL,
@@ -250,7 +250,6 @@ CREATE TABLE SysNotify
 )
 ALTER TABLE SysNotify ADD CONSTRAINT PK_SysNotify PRIMARY KEY CLUSTERED(notify_id) ON [PRIMARY]
 ALTER TABLE SysNotify ADD CONSTRAINT FK_SysNotify_UserSender FOREIGN KEY(sender_id) REFERENCES SysUser(user_id)
-ALTER TABLE SysNotify ADD CONSTRAINT FK_SysNotify_UserReceiver FOREIGN KEY(receiver_id) REFERENCES SysUser(user_id)
 GO
 
 CREATE TABLE KeyStore
@@ -300,3 +299,21 @@ SELECT * FROM Attendance
 
 SELECT * FROM SysComment
 SELECT * FROM SysNotify
+
+-- Update lại table SysNotify (quan hệ n-n sinh ra bảng NotifyUser) 31/07
+-- Update 1/8 thếm file_link| drop table sysnotify rồi chạy lại nhé Phước
+
+CREATE TABLE NotifyUser
+(
+	[notify_user_id] INT IDENTITY(1, 1) NOT NULL,
+	[notify_id] INT NULL,
+	[receiver_id] INT NULL,
+	[status] BIT NULL,
+	[creator_id] INT NULL,
+	[updater_id] INT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL
+)
+ALTER TABLE NotifyUser ADD CONSTRAINT FK_NotifyUser_UserReceiver FOREIGN KEY(receiver_id) REFERENCES SysUser(user_id)
+ALTER TABLE NotifyUser ADD CONSTRAINT FK_NotifyUser_SysNotify FOREIGN KEY(notify_id) REFERENCES SysNotify(notify_id)
+

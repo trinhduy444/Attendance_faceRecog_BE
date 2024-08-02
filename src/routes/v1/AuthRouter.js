@@ -9,7 +9,7 @@ const authMiddleWare = require('../../middlewares/AuthMiddleWare');
 router.post('/login', authController.login);
 router.get('/login/success', authController.loginGoogle);
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/api/v1/auth/failure' }),authController.loginGoogle);
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/api/v1/auth/failure' }), authController.loginGoogle);
 
 //Logout and failure
 router.post('/logout', authController.logout);
@@ -25,5 +25,16 @@ router.post('/checkToken/:token', authController.checkTokenValid) // chua xong
 router.post('/checkPassword', authMiddleWare.isLogin, authController.checkPasswordValid)
 router.put('/changePassword', authMiddleWare.isLogin, authController.changePassword)
 
+
+// Check valid token and decode who is trying to
+//isLogin
+router.post('/isLogin', authController.isLogin);
+//isAdmin
+router.post('/isAdmin', authMiddleWare.isLogin, authController.isAdmin)
+// isTeacher 
+router.post('/isTeacher', authMiddleWare.isLogin, authController.isTeacher)
+
+//isAdminOrTeacher
+router.post('/isAdminOrTeacher', authMiddleWare.isLogin, authController.isAdminOrTeacher)
 
 module.exports = router;

@@ -11,6 +11,7 @@ const classRoomRouterV1 = require('./v1/ClasssRoomRouter');
 const postRouterV1 = require('./v1/PostRouter');
 const attendanceRouterV1 = require('./v1/AttendanceRouter');
 const commentRouterV1 = require('./v1/CommentRouter');
+const notifyRouterV1 = require('./v1/NotifyRouter');
 
 router.use(session({
     secret: 'admin123',
@@ -32,5 +33,5 @@ router.use('/v1/classroom', classRoomRouterV1);
 router.use('/v1/post', postRouterV1);
 router.use('/v1/attendances', attendanceRouterV1);
 router.use('/v1/comment', commentRouterV1)
-
+router.use('/v1/notify', notifyRouterV1);
 module.exports = router;

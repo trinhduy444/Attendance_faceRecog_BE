@@ -22,6 +22,10 @@ router.delete('/', authMiddleware.isLogin, courseController.deleteCourse);
 //Get Course filter
 router.post('/getCourseFilter', authMiddleware.isLogin, courseController.getCourseFilter)
 
+//Get All Course Group active
+router.post('/getAllCourseGroupActive', authMiddleware.isLogin, courseController.getAllCourseGroupActive)
+
+// Create Course Group
 router.post('/createCourseGroup', authMiddleware.isLogin, courseController.createCourseGroup)
 
 router.post('/getCourseGroupByTeacher', authMiddleware.isLogin, courseController.getAllCoursesGroupByTeacherId)

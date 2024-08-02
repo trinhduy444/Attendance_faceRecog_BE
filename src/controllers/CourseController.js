@@ -139,6 +139,17 @@ class CourseController {
         })
     };
 
+    getAllCourseGroupActive = async (req, res) => {
+        if (req.user?.role_id !== 1) {
+            throw new ForbiddenError('You are not allowed');
+        }
+        const coursegroups = await courseModel.getAllCourseGroupActive();
+        return res.status(200).json({
+            status: 200,
+            message: "Get Courses Successfully",
+            metadata: coursegroups,
+        })
+    };
     createCourseGroup = async (req, res) => {
         if (req.user?.role_id !== 1) {
             throw new ForbiddenError('You are not allowed');

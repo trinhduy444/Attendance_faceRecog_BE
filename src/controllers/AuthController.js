@@ -195,6 +195,71 @@ class AuthController {
             });
         });
     }
+    isLogin = async (req, res) => {
+        try {
+            const accessToken = req.headers.authorization;
+            if (!accessToken?.startsWith("Bearer ")) return res.status(403).json({ status: 403, message: "Not Authenticate" });
+            const { refreshToken } = req.cookies
+            if (!refreshToken) return res.status(403).json({ status: 403, message: "Not Authenticate" });
+
+
+            const users = await keyStoreModel.getUserByRefreshTokenUsing(refreshToken);
+            const user = users[0];
+            if (!user) return res.status(403).json({ status: 403, message: "Not Authenticate" });
+
+            return res.status(200).json({ status: 200, message: "Authenticated" });
+
+        } catch (error) {
+            return res.status(403).json({ status: 403, message: "Not Authenticate" });
+        }
+
+    }
+    isAdmin = async (req, res) => {
+        try {
+            if (req.user.role_id != 1) {
+                return res.status(403).json({
+                    'status': 403,
+                    'message': 'Not Admin',
+                    'data': {}
+                });
+            }
+            return res.status(200).json({ status: 200, message: 'OK' });
+        } catch (error) {
+            return res.status(403).json({ status: 403, message: "Not Admin" });
+        }
+
+    }
+    isTeacher = async (req, res) => {
+        try {
+            if (req.user.role_id != 2) {
+                return res.status(403).json({
+                    'status': 403,
+                    'message': 'Not Teacher',
+                    'data': {}
+                });
+            }
+            return res.status(200).json({ status: 200, message: 'OK' });
+        } catch (error) {
+            return res.status(403).json({ status: 403, message: "Not Teacher" });
+        }
+
+    }
+    isAdminOrTeacher = async (req, res) => {
+        try {
+            const role_id = req.user.role_id
+            if (role_id !== 1 && role_id !== 2) {
+                return res.status(403).json({
+                    'status': 403,
+                    'message': 'Not Admin or Teacher',
+                    'data': {}
+                });
+            }
+            return res.status(200).json({ status: 200, message: 'OK' });
+        } catch (error) {
+            return res.status(403).json({ status: 403, message: "Not Admin or Teacher" });
+        }
+
+    }
 
 }
 
