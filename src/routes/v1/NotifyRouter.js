@@ -10,5 +10,4 @@ router.put('/hideNotifications/:notify_id', authMiddleware.isLogin, authMiddlewa
 router.put('/showNotifications/:notify_id', authMiddleware.isLogin, authMiddleware.isAdmin, notifyController.showNotifications)
 router.put('/viewNotification/:notify_id', authMiddleware.isLogin, notifyController.viewNotification)
 
-
 module.exports = router;

@@ -314,6 +314,22 @@ CREATE TABLE NotifyUser
 	[create_time] DATETIME NULL,
 	[update_time] DATETIME NULL
 )
+ALTER TABLE NotifyUser ADD CONSTRAINT PK_NotifyUser PRIMARY KEY CLUSTERED(notify_user_id) ON [PRIMARY]
 ALTER TABLE NotifyUser ADD CONSTRAINT FK_NotifyUser_UserReceiver FOREIGN KEY(receiver_id) REFERENCES SysUser(user_id)
 ALTER TABLE NotifyUser ADD CONSTRAINT FK_NotifyUser_SysNotify FOREIGN KEY(notify_id) REFERENCES SysNotify(notify_id)
-
+-- Update nam hoc, hoc ki
+CREATE TABLE SemesterYear
+(
+	[semester_year_id] INT IDENTITY(1, 1) NOT NULL,
+	[semester_year_name] Nvarchar(64),
+	[semester] INT NULL,
+	[year] INT NULL,
+	[status] BIT NULL,
+	[creator_id] INT NULL,
+	[updater_id] INT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL
+)
+ALTER TABLE SemesterYear ADD CONSTRAINT PK_SemesterYear PRIMARY KEY CLUSTERED(semester_year_id) ON [PRIMARY]
+Alter table CourseGroup add semester_year_id int
+-- vào trong attendanceSystemData.sql để chạy thêm dữ liệu năm học học kỳ.

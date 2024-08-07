@@ -195,10 +195,17 @@ class CourseModel {
         });
     }
 
-    getCourseGroupByTeacherId(teacher_id) {
+    getCourseGroupByTeacherId(teacher_id,semester_year_id) {
         return new Promise((resolve, reject) => {
-            const q = 'EXEC GetTeacherCourseInfo @teacher_id = ?'
-            const params = [teacher_id]
+            // const q = 'EXEC GetTeacherCourseInfo @teacher_id = ?'
+            let q = `SELECT * FROM CourseGroupInfoView where teacher_id = ?`;
+            let params = [teacher_id];
+    
+            if (semester_year_id) {
+                q += ` and semester_year_id = ?`;
+                params.push(semester_year_id);
+            }
+    
             db.query(q, params, (err, result) => {
                 if (err) {
                     reject(err)
@@ -227,6 +234,7 @@ class CourseModel {
                 cg.course_code,
                 cg.teacher_id,
                 cg.group_code,
+                cg.semester_year_id,
                 c.course_name,
                 su.nickname
             FROM
@@ -245,7 +253,27 @@ class CourseModel {
                 }
             })
         })
+    };
+    getAllCourseGroup(semester_year_id) {
+        return new Promise((resolve, reject) => {
+            let q = `SELECT * FROM CourseGroupInfoView`;
+            let params = [];
+    
+            if (semester_year_id) {
+                q += ` WHERE semester_year_id = ?`;
+                params.push(semester_year_id);
+            }
+    
+            db.query(q, params, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
     }
+    
     checkInCourseGroup(courseGroupId, studentId) {
         return new Promise((resolve, reject) => {
             const query = `
@@ -264,6 +292,18 @@ class CourseModel {
             });
         });
     };
+    getAllSemester(){
+        return new Promise((resolve, reject) => {
+            let q = `select * from SemesterYear`;
+            db.query(q, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+    }
 }
 
 module.exports = new CourseModel;
