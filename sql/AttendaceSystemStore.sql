@@ -343,3 +343,25 @@ WHERE
 
 Go
 Select * from ActiveCourseGroups
+
+-- 07/08 View xem tất cả course group
+Go
+CREATE VIEW CourseGroupInfoView AS
+SELECT
+    cg.course_group_id,
+    cg.group_code,
+    cg.classroomshift_id,
+	cg.semester_year_id,
+    c.course_name,
+    su.avatar_path,
+    su.nickname,
+    cls.classroom_code,
+    cls.shift_code
+FROM
+    CourseGroup cg
+    INNER JOIN Course c ON cg.course_code = c.course_code
+    INNER JOIN sysUser su ON cg.teacher_id = su.user_id
+    INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id;
+GO
+
+select * from CourseGroupInfoView

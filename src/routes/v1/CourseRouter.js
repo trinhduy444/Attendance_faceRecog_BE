@@ -8,7 +8,7 @@ const courseController = require('../../controllers/CourseController');
 router.get('/', courseController.getAllCoursesPagination);
 
 // Get course by Course Code
-router.get('/:courseCode', courseController.getCourseByCode);
+// router.get('/:courseCode', courseController.getCourseByCode);
 
 // Add course
 router.post('/', authMiddleware.isLogin, courseController.postCourse);
@@ -35,5 +35,10 @@ router.post('/getCourseGroupByStudent', authMiddleware.isLogin, courseController
 router.get('/getInfoCourseGroup/:course_group_id', courseController.getInfoCourseGroup)
 
 router.post('/checkAccessCourseGroup/:course_group_id', authMiddleware.isLogin, courseController.checkInCourseGroup)
+
+//Get All Course Groups have Semester Year
+router.post('/getAllCourseGroup', authMiddleware.isLogin, authMiddleware.isAdmin, courseController.getAllCourseGroup)
+//Get All Semesters
+router.post('/getAllSemesters', authMiddleware.isLogin, courseController.getAllSemester)
 
 module.exports = router;

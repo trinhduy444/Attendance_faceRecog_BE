@@ -169,12 +169,14 @@ class CourseController {
         })
     }
     getAllCoursesGroupByTeacherId = async (req, res) => {
+        const { semester_year_id } = req.query;
+
         if (req.user?.role_id !== 2) {
             return res.status(403).json({ error: 'You are not allowed' });
         }
 
         const teacher_id = req.user.user_id;
-        const data = await courseModel.getCourseGroupByTeacherId(teacher_id);
+        const data = await courseModel.getCourseGroupByTeacherId(teacher_id, semester_year_id);
         return res.status(200).json({
             status: 200,
             message: "Get Course Group Successfully",
@@ -222,6 +224,23 @@ class CourseController {
             })
         }
     };
+    getAllCourseGroup = async (req, res) => {
+        const { semester_year_id } = req.query;
+        try {
+            const data = await courseModel.getAllCourseGroup(semester_year_id);
+            console.log(data,semester_year_id);
+            return res.status(200).json({
+                status: 200,
+                message: "Get Info Course Group Successfully",
+                metadata: data
+            })
+        } catch (err) {
+            return res.status(400).json({
+                status: 400,
+                message: "Somthing went wrong!"
+            })
+        }
+    }
     getInfoCourseGroup = async (req, res) => {
         const { course_group_id } = req.params;
         if (!course_group_id) throw new BadRequestError("Invalid Course Group");
@@ -264,6 +283,23 @@ class CourseController {
             })
         }
     }
+    getAllSemester = async (req, res) => {
+        try {
+            const result = await courseModel.getAllSemester();
+            return res.status(200).json({
+                status: 200,
+                message: "get all semesters successfully",
+                metadata: result
+            })
+
+        } catch (err) {
+            console.log(err)
+            return res.status(400).json({
+                status: 400,
+                message: "Somthing went wrong!"
+            })
+        }
+    };
 }
 
 module.exports = new CourseController;

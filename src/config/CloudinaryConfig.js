@@ -6,8 +6,9 @@ cloudinary.config({
     api_secret: '4EDP-poLXWBWOVtTCZCv5EZ_v8k' 
 });
 const CLOUDINARY_FOLDER = 'Attendance_System';
+const CLOUDINARY_FOLDER2 = 'Attendance_Data';
 
-module.exports = { cloudinary,CLOUDINARY_FOLDER };
+module.exports = { cloudinary,CLOUDINARY_FOLDER,CLOUDINARY_FOLDER2 };
 
 // (async function () {
 //     // CLOUDINARY_URL=cloudinary://863579243165465:4EDP-poLXWBWOVtTCZCv5EZ_v8k@diges8hpb

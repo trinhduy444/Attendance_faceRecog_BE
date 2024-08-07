@@ -105,6 +105,7 @@ class AttendanceRawDataModel {
 
     // Get list of attendance
     getAttendances(studentId, courseGroupId, attendDate) {
+
         // Convert string to date
         attendDate = attendDate == null ? null : new Date(attendDate);
 
