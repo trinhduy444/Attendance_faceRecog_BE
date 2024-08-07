@@ -25,6 +25,9 @@ router.post('/getCourseFilter', authMiddleware.isLogin, courseController.getCour
 //Get All Course Group active
 router.post('/getAllCourseGroupActive', authMiddleware.isLogin, courseController.getAllCourseGroupActive)
 
+// Get course group list of student info
+router.get('/groups/students/:courseGroupId', authMiddleware.isLogin, courseController.getCourseGroupStudentListInfo);
+
 // Create Course Group
 router.post('/createCourseGroup', authMiddleware.isLogin, courseController.createCourseGroup)
 

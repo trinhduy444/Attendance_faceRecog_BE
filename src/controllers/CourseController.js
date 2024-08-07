@@ -150,6 +150,29 @@ class CourseController {
             metadata: coursegroups,
         })
     };
+
+    getCourseGroupStudentListInfo(req, res) {
+        let { courseGroupId } = req.params;
+        courseGroupId = courseGroupId || 0;
+
+        courseModel.getCourseGroupStudentListInfo(courseGroupId)
+        .then((students) => {
+            return res.status(200).json({
+                'status': 200,
+                'message': 'Receive course group student list info success.',
+                'data': {
+                    'students': students
+                }
+            });
+        }).catch((err) => {
+            return res.status(500).json({
+                'status': 500,
+                'message': err,
+                'data': {}
+            });
+        });
+    }
+
     createCourseGroup = async (req, res) => {
         if (req.user?.role_id !== 1) {
             throw new ForbiddenError('You are not allowed');
@@ -168,6 +191,7 @@ class CourseController {
 
         })
     }
+
     getAllCoursesGroupByTeacherId = async (req, res) => {
         const { semester_year_id } = req.query;
 

@@ -200,13 +200,13 @@ END
 GO
 
 -- View tạo để lấy dữ liệu (Nếu chỉ join thì không cần viết store á Duy)
-CREATE VIEW vattendance
+CREATE VIEW vAttendance
 AS
 	SELECT a.*, ISNULL(b.username, '') AS username, ISNULL(b.nickname, '') AS nickname
 	FROM Attendance a
 		LEFT JOIN SysUser b ON a.student_id = b.user_id
 GO
-SELECT * FROM vattendance
+SELECT * FROM vAttendance
 GO
 
 -- Store báo cáo tổng hợp dữ liệu điểm danh
@@ -365,3 +365,14 @@ FROM
 GO
 
 select * from CourseGroupInfoView
+
+-- 08/08
+-- View lấy thông tin danh sách sinh viên của lớp học
+CREATE VIEW vCourseGroupStudentList
+AS
+	SELECT a.*, b.username AS student_username, b.nickname AS student_nickname, b.avatar_path AS student_avatar_path
+		FROM CourseGroupStudentList a
+			JOIN SysUser b ON a.student_id = b.user_id AND b.avatar_path <> '' AND b.status = 1
+		WHERE a.status = 1
+GO
+SELECT * FROM vCourseGroupStudentList WHERE course_group_id = 100

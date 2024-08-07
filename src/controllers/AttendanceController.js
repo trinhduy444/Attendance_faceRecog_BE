@@ -38,7 +38,7 @@ class AttendanceController {
         attendanceModel.addAttendanceRawData(AttendanceRawData, req.user.user_id)
             .then(() => {
                 return res.status(200).json({
-                    'status': 200,
+                    'status': 201,
                     'message': 'Add Attendance Raw Data success.',
                     'data': {}
                 });

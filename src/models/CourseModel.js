@@ -157,11 +157,25 @@ class CourseModel {
             db.query(q, (err, rows) => {
                 if (err) {
                     reject(err)
-
                 } else { resolve(rows) };
             })
         });
     }
+
+    // Get course group student info list
+    getCourseGroupStudentListInfo(courseGroupId) {
+        courseGroupId = sql.Int(courseGroupId);
+
+        return new Promise((resolve, reject) => {
+            const q = 'select * from vCourseGroupStudentList where ? in (course_group_id, 0)';
+            const params = [courseGroupId];
+            db.query(q, params, (err, rows) => {
+                if (err) reject(err);
+                resolve(rows);
+            })
+        });
+    }
+
     createCourseGroupStudentList(course_group_id, userId, creator_id) {
         return new Promise((resolve, reject) => {
             const q = 'INSERT INTO CourseGroupStudentList (course_group_id, student_id, status, creator_id, create_time) VALUES (?, ?, ?, ?, getdate())';

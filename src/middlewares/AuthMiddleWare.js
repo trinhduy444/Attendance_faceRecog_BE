@@ -5,7 +5,6 @@ class AuthMiddleware {
     isLogin = async (req, res, next) => {
         try {
             //if login by GG next()
-
             if (req.user) return next();
             // Get header
             const accessToken = req.headers.authorization;
