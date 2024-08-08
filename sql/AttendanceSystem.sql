@@ -120,6 +120,20 @@ ALTER TABLE ClassRoomShift ADD CONSTRAINT FK_ClassRoomShift_Classroom FOREIGN KE
 ALTER TABLE ClassRoomShift ADD CONSTRAINT FK_ClassRoomShift_Shift FOREIGN KEY(shift_code) REFERENCES Shift(shift_code)
 GO
 
+CREATE TABLE SemesterYear
+(
+	[semester_year_id] INT IDENTITY(1, 1) NOT NULL,
+	[semester_year_name] Nvarchar(64),
+	[semester] INT NULL,
+	[year] INT NULL,
+	[status] BIT NULL,
+	[creator_id] INT NULL,
+	[updater_id] INT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL
+)
+ALTER TABLE SemesterYear ADD CONSTRAINT PK_SemesterYear PRIMARY KEY CLUSTERED(semester_year_id) ON [PRIMARY]
+
 CREATE TABLE CourseGroup
 (
 	[course_group_id] INT IDENTITY(1, 1) NOT NULL,
@@ -128,6 +142,7 @@ CREATE TABLE CourseGroup
 	[teacher_id] INT NULL,
 	[classroomshift_id] INT UNIQUE,
 	[total_student_qty] INT NULL,
+	[semester_year_id] INT NULL,
 	[status] BIT NULL,
 	[creator_id] INT NULL,
 	[updater_id] INT NULL,
@@ -202,6 +217,8 @@ CREATE TABLE Attendance
 	[attend_yn] BIT NOT NULL,
 	[enter_time] CHAR(5) NULL,
 	[leave_time] CHAR(5) NULL,
+	[attend_type] TINYINT NULL,
+	[attend_image_path] VARCHAR(128) NULL,
 	[note] NVARCHAR(256) NULL,
 	[status] BIT NULL,
 	[creator_id] INT NULL,
@@ -209,7 +226,7 @@ CREATE TABLE Attendance
 	[create_time] DATETIME NULL,
 	[update_time] DATETIME NULL
 )
-ALTER TABLE Attendance ADD CONSTRAINT PK_Attendance PRIMARY KEY CLUSTERED(student_id, course_group_id, attend_date) ON [PRIMARY]
+ALTER TABLE Attendance ADD CONSTRAINT PK_Attendance PRIMARY KEY CLUSTERED(student_id, course_group_id, attend_date, attend_type) ON [PRIMARY]
 ALTER TABLE Attendance ADD CONSTRAINT FK_Attendance_UserStudent FOREIGN KEY(student_id) REFERENCES SysUser(user_id)
 ALTER TABLE Attendance ADD CONSTRAINT FK_Attendance_CourseGroup FOREIGN KEY(course_group_id) REFERENCES CourseGroup(course_group_id)
 GO
@@ -317,19 +334,3 @@ CREATE TABLE NotifyUser
 ALTER TABLE NotifyUser ADD CONSTRAINT PK_NotifyUser PRIMARY KEY CLUSTERED(notify_user_id) ON [PRIMARY]
 ALTER TABLE NotifyUser ADD CONSTRAINT FK_NotifyUser_UserReceiver FOREIGN KEY(receiver_id) REFERENCES SysUser(user_id)
 ALTER TABLE NotifyUser ADD CONSTRAINT FK_NotifyUser_SysNotify FOREIGN KEY(notify_id) REFERENCES SysNotify(notify_id)
--- Update nam hoc, hoc ki
-CREATE TABLE SemesterYear
-(
-	[semester_year_id] INT IDENTITY(1, 1) NOT NULL,
-	[semester_year_name] Nvarchar(64),
-	[semester] INT NULL,
-	[year] INT NULL,
-	[status] BIT NULL,
-	[creator_id] INT NULL,
-	[updater_id] INT NULL,
-	[create_time] DATETIME NULL,
-	[update_time] DATETIME NULL
-)
-ALTER TABLE SemesterYear ADD CONSTRAINT PK_SemesterYear PRIMARY KEY CLUSTERED(semester_year_id) ON [PRIMARY]
-Alter table CourseGroup add semester_year_id int
--- vào trong attendanceSystemData.sql để chạy thêm dữ liệu năm học học kỳ.

@@ -175,12 +175,20 @@ BEGIN
 	SELECT TOP 0 a.* INTO #data FROM Attendance a WHERE 1=0
 
 	-- Insert student with it attendant state
-	INSERT INTO #data(student_id, course_group_id, attend_date, attend_yn, enter_time)
-		SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time FROM #tmp a WHERE a.attend_type IN (0, 1)
+	INSERT INTO #data(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+		SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type FROM #tmp a WHERE a.attend_type % 2 = 0
 		UNION ALL
-		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00' FROM #student a WHERE NOT EXISTS(SELECT 1 FROM #tmp x WHERE a.student_id = x.student_id)
+		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0 FROM #student a WHERE NOT EXISTS(SELECT 1 FROM #tmp x WHERE a.student_id = x.student_id)
 
-	UPDATE #data SET leave_time = '00:00', note = '', status = 1, creator_id = @user_id, updater_id = @user_id, create_time = @CurrDate, update_time = @CurrDate
+	-- Update leave time
+	UPDATE #data SET leave_time = ISNULL(b.attend_time, '00:00') FROM #data a LEFT JOIN #tmp b ON a.student_id = b.student_id AND a.course_group_id = b.course_group_id AND a.attend_date = b.attend_date AND a.attend_type = b.attend_type - 1 WHERE a.attend_type % 2 = 0
+
+	-- Insert student who miss start of class
+	INSERT INTO #data(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+		SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1 FROM #tmp a WITH(NOLOCK)
+			WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1 FROM #tmp x WITH(NOLOCK) WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
+
+	UPDATE #data SET note = '', status = 1, creator_id = @user_id, updater_id = @user_id, create_time = @CurrDate, update_time = @CurrDate
 
 	BEGIN TRY
 		BEGIN TRANSACTION;
@@ -200,13 +208,17 @@ END
 GO
 
 -- View tạo để lấy dữ liệu (Nếu chỉ join thì không cần viết store á Duy)
-CREATE VIEW vAttendance
+CREATE VIEW vattendance
 AS
 	SELECT a.*, ISNULL(b.username, '') AS username, ISNULL(b.nickname, '') AS nickname
-	FROM Attendance a
-		LEFT JOIN SysUser b ON a.student_id = b.user_id
+			, ISNULL(c.course_code, '') AS course_code, ISNULL(d.course_name, '') AS course_name
+			, CONVERT(VARCHAR(10), a.attend_date, 103) AS attend_date_dmy, CONVERT(VARCHAR(5), a.attend_date, 103) AS attend_date_dm
+		FROM Attendance a
+			LEFT JOIN SysUser b ON a.student_id = b.user_id
+			LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
+			LEFT JOIN Course d ON c.course_code = d.course_code
 GO
-SELECT * FROM vAttendance
+SELECT * FROM vattendance
 GO
 
 -- Store báo cáo tổng hợp dữ liệu điểm danh
