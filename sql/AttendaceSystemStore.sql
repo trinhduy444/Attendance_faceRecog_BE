@@ -352,6 +352,7 @@ SELECT
     cg.group_code,
     cg.classroomshift_id,
 	cg.semester_year_id,
+	cg.status,
     c.course_name,
     su.avatar_path,
     su.nickname,
@@ -368,6 +369,7 @@ select * from CourseGroupInfoView
 
 -- 08/08
 -- View lấy thông tin danh sách sinh viên của lớp học
+Go
 CREATE VIEW vCourseGroupStudentList
 AS
 	SELECT a.*, b.username AS student_username, b.nickname AS student_nickname, b.avatar_path AS student_avatar_path
@@ -376,3 +378,5 @@ AS
 		WHERE a.status = 1
 GO
 SELECT * FROM vCourseGroupStudentList WHERE course_group_id = 100
+
+-- chạy lại CourseGroupInfoView nha Phước 08/08

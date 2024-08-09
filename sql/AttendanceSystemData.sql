@@ -182,7 +182,7 @@ INSERT INTO AttendanceRawData(student_id, course_group_id, attend_date, attend_t
 GO
 
 -- Dữ liệu update thêm học kỳ
-insert into TernYear(tern_year_name,tern,year,status,creator_id,create_time) 
+insert into SemesterYear(tern_year_name,tern,year,status,creator_id,create_time) 
 values(N'Học kỳ 1 năm học 2023',1,2023,1,1,getDate()),
 (N'Học kỳ 2 năm học 2023',2,2023,1,1,getDate()),
 (N'Học kỳ 3 năm học 2023',3,2023,1,1,getDate()),
@@ -192,3 +192,7 @@ values(N'Học kỳ 1 năm học 2023',1,2023,1,1,getDate()),
 
 update CourseGroup set semester_year_id = 1
 update CourseGroup set semester_year_id = 2 where course_group_id = 40
+-- Update Semester 8-8
+update SemesterYear set week_from =1,week_to= 22 where semester = 1
+update SemesterYear set week_from =28,week_to= 40 where semester = 2
+update SemesterYear set week_from =43,week_to= 52 where semester = 3

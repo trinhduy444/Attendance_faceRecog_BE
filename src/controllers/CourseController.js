@@ -177,12 +177,12 @@ class CourseController {
         if (req.user?.role_id !== 1) {
             throw new ForbiddenError('You are not allowed');
         }
-        const { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students } = req.body;
+        const { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students,semester_year_id } = req.body;
         if (!course_code) throw new BadRequestError('course_code is required');
-
+        console.log("data", { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students,semester_year_id })
         await classRoomModel.setRoomNotEmpty(shift_code, classroom_code, req.user.role_id).then(async (classroomshift_id) => {
             const usersId = await userModel.getUserIdFromList(students)
-            await courseModel.createCourseGroup(classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, req.user.role_id)
+            await courseModel.createCourseGroup(classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, req.user.role_id,semester_year_id)
         })
 
         return res.status(201).json({

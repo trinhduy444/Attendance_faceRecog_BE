@@ -190,10 +190,10 @@ class CourseModel {
         });
     }
 
-    createCourseGroup(classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, creator_id) {
+    createCourseGroup(classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, creator_id,semester_year_id) {
         return new Promise((resolve, reject) => {
-            const q = 'INSERT INTO CourseGroup (course_code, group_code, teacher_id, total_student_qty, status, creator_id, create_time,classroomshift_id) OUTPUT INSERTED.course_group_id VALUES (?, ?, ?, ?, ?, ?, getdate(),?)';
-            const params = [course_code, group_code, teacher_id, total_student_qty, 1, creator_id, classroomshift_id];
+            const q = 'INSERT INTO CourseGroup (course_code, group_code, teacher_id, total_student_qty, status, creator_id, create_time,classroomshift_id,semester_year_id) OUTPUT INSERTED.course_group_id VALUES (?, ?, ?, ?, ?, ?, getdate(),?,?)';
+            const params = [course_code, group_code, teacher_id, total_student_qty, 1, creator_id, classroomshift_id,semester_year_id];
 
             db.query(q, params, (err, result) => {
                 if (err) {
