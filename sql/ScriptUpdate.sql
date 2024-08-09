@@ -213,4 +213,73 @@ GO
 EXEC AttendanceDetailReport 100
 GO
 
--- Update 04/08/2024
+-- Chạy từ đoạn này để update đợt này nha
+-- Update 08/08/2024
+ALTER TABLE Attendance ADD attend_image_path VARCHAR(128) NULL
+ALTER TABLE Attendance ADD attend_type TINYINT NULL
+
+GO
+ALTER VIEW vattendance
+AS
+	SELECT a.*, ISNULL(b.username, '') AS username, ISNULL(b.nickname, '') AS nickname
+			, ISNULL(c.course_code, '') AS course_code, ISNULL(d.course_name, '') AS course_name
+			, CONVERT(VARCHAR(10), a.attend_date, 103) AS attend_date_dmy, CONVERT(VARCHAR(5), a.attend_date, 103) AS attend_date_dm
+		FROM Attendance a
+			LEFT JOIN SysUser b ON a.student_id = b.user_id
+			LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
+			LEFT JOIN Course d ON c.course_code = d.course_code
+GO
+SELECT * FROM vattendance
+GO
+
+ALTER PROCEDURE UpdateAttendanceFromRawData
+	@course_group_id INT,
+	@attend_date DATE,
+	@user_id INT
+AS
+BEGIN
+	SET NOCOUNT ON
+
+	DECLARE @CurrDate DATETIME = GETDATE()
+
+	-- Student in group list
+	SELECT student_id INTO #student FROM CourseGroupStudentList WHERE course_group_id = @course_group_id
+
+	-- Get attendant data
+	SELECT * INTO #tmp FROM AttendanceRawData WHERE course_group_id = @course_group_id AND attend_date = @attend_date
+
+	-- Struct
+	SELECT TOP 0 a.* INTO #data FROM Attendance a WHERE 1=0
+
+	-- Insert student with it attendant state
+	INSERT INTO #data(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+		SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type FROM #tmp a WHERE a.attend_type % 2 = 0
+		UNION ALL
+		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0 FROM #student a WHERE NOT EXISTS(SELECT 1 FROM #tmp x WHERE a.student_id = x.student_id)
+
+	-- Update leave time
+	UPDATE #data SET leave_time = ISNULL(b.attend_time, '00:00') FROM #data a LEFT JOIN #tmp b ON a.student_id = b.student_id AND a.course_group_id = b.course_group_id AND a.attend_date = b.attend_date AND a.attend_type = b.attend_type - 1 WHERE a.attend_type % 2 = 0
+
+	-- Insert student who miss start of class
+	INSERT INTO #data(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+		SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1 FROM #tmp a WITH(NOLOCK)
+			WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1 FROM #tmp x WITH(NOLOCK) WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
+
+	UPDATE #data SET note = '', status = 1, creator_id = @user_id, updater_id = @user_id, create_time = @CurrDate, update_time = @CurrDate
+
+	BEGIN TRY
+		BEGIN TRANSACTION;
+			
+			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1 FROM #data x WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
+			INSERT INTO Attendance SELECT * FROM #data
+
+		COMMIT TRANSACTION;
+	END TRY
+	BEGIN CATCH
+		SELECT ERROR_MESSAGE() AS [message], ERROR_PROCEDURE() AS [error_store], 'PullAttendanceRawData' AS [store]
+		ROLLBACK TRANSACTION
+	END CATCH;
+
+	DROP TABLE #student, #tmp, #data
+END
+GO

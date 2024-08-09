@@ -57,19 +57,19 @@ class AttendanceController {
         attendDate = attendDate || null;
 
         attendanceModel.updateAttendanceFromRawData(courseGroupId, attendDate, req.user.user_id)
-            .then(() => {
-                return res.status(200).json({
-                    'status': 200,
-                    'message': 'Update attendance data from raw data success.',
-                    'data': {}
-                });
-            }).catch((err) => {
-                return res.status(500).json({
-                    'status': 500,
-                    'message': err,
-                    'data': {}
-                });
+        .then(() => {
+            return res.status(200).json({
+                'status': 200,
+                'message': 'Update attendance data from raw data success.',
+                'data': {}
             });
+        }).catch((err) => {
+            return res.status(500).json({
+                'status': 500,
+                'message': err,
+                'data': {}
+            });
+        });
     }
 
     getAttendance(req, res) {
