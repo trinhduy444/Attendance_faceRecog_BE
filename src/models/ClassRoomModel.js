@@ -69,6 +69,19 @@ class ClassRoomModel {
             });
         });
     }
+    getAllClassrooms() {
+        return new Promise((resolve, reject) => {
+            const q = 'SELECT * FROM Classroom';
+            db.query(q, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
     getClassRoomsFilter(building, capacity) {
         return new Promise((resolve, reject) => {
             let q = 'SELECT * FROM Classroom where status = 0'

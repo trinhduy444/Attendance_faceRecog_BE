@@ -44,4 +44,9 @@ router.post('/getAllCourseGroup', authMiddleware.isLogin, authMiddleware.isAdmin
 //Get All Semesters
 router.post('/getAllSemesters', authMiddleware.isLogin, courseController.getAllSemester)
 
+// Create Mutli Course Group
+router.post('/createCourseGroups',authMiddleware.isLogin, authMiddleware.isAdmin, courseController.createCourseGroups)
+
+// Create Mutltii Student in Course Group
+router.post('/createStudentLists', authMiddleware.isLogin, authMiddleware.isAdmin, courseController.createStudentList)
 module.exports = router;

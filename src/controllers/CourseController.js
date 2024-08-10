@@ -156,40 +156,49 @@ class CourseController {
         courseGroupId = courseGroupId || 0;
 
         courseModel.getCourseGroupStudentListInfo(courseGroupId)
-        .then((students) => {
-            return res.status(200).json({
-                'status': 200,
-                'message': 'Receive course group student list info success.',
-                'data': {
-                    'students': students
-                }
+            .then((students) => {
+                return res.status(200).json({
+                    'status': 200,
+                    'message': 'Receive course group student list info success.',
+                    'data': {
+                        'students': students
+                    }
+                });
+            }).catch((err) => {
+                return res.status(500).json({
+                    'status': 500,
+                    'message': err,
+                    'data': {}
+                });
             });
-        }).catch((err) => {
-            return res.status(500).json({
-                'status': 500,
-                'message': err,
-                'data': {}
-            });
-        });
     }
 
     createCourseGroup = async (req, res) => {
         if (req.user?.role_id !== 1) {
             throw new ForbiddenError('You are not allowed');
         }
-        const { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students,semester_year_id } = req.body;
-        if (!course_code) throw new BadRequestError('course_code is required');
-        console.log("data", { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students,semester_year_id })
-        await classRoomModel.setRoomNotEmpty(shift_code, classroom_code, req.user.role_id).then(async (classroomshift_id) => {
-            const usersId = await userModel.getUserIdFromList(students)
-            await courseModel.createCourseGroup(classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, req.user.role_id,semester_year_id)
-        })
+        const user_id = req.user.user_id;
+        try {
+            const { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students, semester_year_id, week_day } = req.body;
+            if (!course_code) throw new BadRequestError('course_code is required');
+            console.log("data", { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students,semester_year_id,week_day })
+            await classRoomModel.setRoomNotEmpty(shift_code, classroom_code, user_id).then(async (classroomshift_id) => {
+                const usersId = await userModel.getUserIdFromList(students)
+                await courseModel.createCourseGroup(classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, user_id, semester_year_id, week_day)
+            })
 
-        return res.status(201).json({
-            status: 201,
-            message: "Create CourseGroup Successfully",
+            return res.status(201).json({
+                status: 201,
+                message: "Create CourseGroup Successfully",
 
-        })
+            })
+        } catch (error) {
+            return res.status(500).json({
+                'status': 500,
+                'message': error.message,
+            });
+        }
+
     }
 
     getAllCoursesGroupByTeacherId = async (req, res) => {
@@ -252,7 +261,7 @@ class CourseController {
         const { semester_year_id } = req.query;
         try {
             const data = await courseModel.getAllCourseGroup(semester_year_id);
-            console.log(data,semester_year_id);
+            // console.log(data,semester_year_id);
             return res.status(200).json({
                 status: 200,
                 message: "Get Info Course Group Successfully",
@@ -324,6 +333,51 @@ class CourseController {
             })
         }
     };
+    createCourseGroups = async (req, res) => {
+        try {
+            if (req.user.role_id !== 1) throw new ForbiddenError("You not allowed to create a new course group")
+            const { courseGroups } = req.body;
+            if (courseGroups.length <= 0 || !courseGroups) {
+                return res.status(200).json({ status: 400, message: "No courses found" });
+            }
+            // console.log(courseGroups)
+            await courseModel.createMutipleCourseGroup(courseGroups, req.user.user_id);
+
+            return res.status(201).json({
+                status: 201,
+                message: "Create course groups successfully",
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(400).json({
+                status: 400,
+                message: "Somthing went wrong!"
+            })
+        }
+    }
+    createStudentList = async (req, res) => {
+        try {
+            if (req.user.role_id !== 1) throw new ForbiddenError("You not allowed to create a new course group")
+            const { studentLists } = req.body;
+            if (studentLists.length <= 0 || !studentLists) {
+                return res.status(200).json({ status: 400, message: "No students found" });
+            }
+            // console.log(studentLists)
+            await courseModel.createMultiStudentList(studentLists, req.user.user_id);
+
+            return res.status(201).json({
+                status: 201,
+                message: "Create Student List into Course Group successfully",
+            })
+        } catch (err) {
+            console.log(err)
+            return res.status(400).json({
+                status: 400,
+                message: "Somthing went wrong!"
+            })
+        }
+
+    }
 }
 
 module.exports = new CourseController;

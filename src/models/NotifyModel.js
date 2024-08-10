@@ -56,7 +56,7 @@ class NotifyModel {
                     reject(err);
                 } else {
                     const receiverIds = rows.map(row => row.user_id || row.student_id);
-                    console.log("re", receiverIds);
+                    // console.log("re", receiverIds);
 
                     if (receiverIds.length === 0) {
                         resolve('No receivers found.');

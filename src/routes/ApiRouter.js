@@ -13,6 +13,8 @@ const attendanceRouterV1 = require('./v1/AttendanceRouter');
 const commentRouterV1 = require('./v1/CommentRouter');
 const notifyRouterV1 = require('./v1/NotifyRouter');
 
+const scheduleRouterV1 = require('./v1/ScheduleRouter');
+
 router.use(session({
     secret: 'admin123',
     resave: false,
@@ -34,4 +36,5 @@ router.use('/v1/post', postRouterV1);
 router.use('/v1/attendances', attendanceRouterV1);
 router.use('/v1/comment', commentRouterV1)
 router.use('/v1/notify', notifyRouterV1);
+router.use('/v1/schedule', scheduleRouterV1);
 module.exports = router;

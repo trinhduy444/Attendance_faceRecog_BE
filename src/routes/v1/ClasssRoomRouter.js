@@ -10,6 +10,6 @@ router.post('/createClassRooms', authMiddleware.isLogin, authMiddleware.isAdmin,
 router.post('/getRooms', authMiddleware.isLogin, authMiddleware.isAdmin, classRoomController.getClassRooms)
 router.post('/getClassRoomsFilter', authMiddleware.isLogin,authMiddleware.isAdmin, classRoomController.getClassRoomsFilter)
 router.post('/getShiftEmpty', authMiddleware.isLogin,authMiddleware.isAdmin, classRoomController.getShiftEmpty)
-
+router.post('/getAllRooms', authMiddleware.isLogin, authMiddleware.isAdmin, classRoomController.getAllClassRooms)
 
 module.exports = router;

@@ -48,6 +48,21 @@ class UserModel {
             });
         });
     }
+    getUserIdByUsername(username) {
+        username = sql.VarChar(username);
+        return new Promise((resolve, reject) => {
+            const q = 'select user_id from sysuser where username = ?';
+            const params = [username];
+
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows[0].user_id);
+                }
+            });
+        });
+    }
 
     // Get user_id by username
     getUserIdByUsername(username) {
@@ -331,7 +346,18 @@ class UserModel {
         });
     }
 
-
+    getTeacherIDByMSGV(MSGV) {
+        return new Promise((resolve, reject) => {
+            const q = 'select user_id from sysuser where username = ?'
+            db.query(q, [MSGV], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result[0].user_id);
+                }
+            })
+        });
+    }
     changePassword(user_id, newPassword) {
         // new password was hashed
         user_id = sql.Int(user_id);

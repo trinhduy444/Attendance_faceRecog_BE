@@ -166,35 +166,60 @@ BEGIN
 	DECLARE @CurrDate DATETIME = GETDATE()
 
 	-- Student in group list
-	SELECT student_id INTO #student FROM CourseGroupStudentList WHERE course_group_id = @course_group_id
+	SELECT student_id
+	INTO #student
+	FROM CourseGroupStudentList
+	WHERE course_group_id = @course_group_id
 
 	-- Get attendant data
-	SELECT * INTO #tmp FROM AttendanceRawData WHERE course_group_id = @course_group_id AND attend_date = @attend_date
+	SELECT *
+	INTO #tmp
+	FROM AttendanceRawData
+	WHERE course_group_id = @course_group_id AND attend_date = @attend_date
 
 	-- Struct
-	SELECT TOP 0 a.* INTO #data FROM Attendance a WHERE 1=0
+	SELECT TOP 0
+		a.*
+	INTO #data
+	FROM Attendance a
+	WHERE 1=0
 
 	-- Insert student with it attendant state
-	INSERT INTO #data(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
-		SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type FROM #tmp a WHERE a.attend_type % 2 = 0
-		UNION ALL
-		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0 FROM #student a WHERE NOT EXISTS(SELECT 1 FROM #tmp x WHERE a.student_id = x.student_id)
+	INSERT INTO #data
+		(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+			SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type
+		FROM #tmp a
+		WHERE a.attend_type % 2 = 0
+	UNION ALL
+		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0
+		FROM #student a
+		WHERE NOT EXISTS(SELECT 1
+		FROM #tmp x
+		WHERE a.student_id = x.student_id)
 
 	-- Update leave time
 	UPDATE #data SET leave_time = ISNULL(b.attend_time, '00:00') FROM #data a LEFT JOIN #tmp b ON a.student_id = b.student_id AND a.course_group_id = b.course_group_id AND a.attend_date = b.attend_date AND a.attend_type = b.attend_type - 1 WHERE a.attend_type % 2 = 0
 
 	-- Insert student who miss start of class
-	INSERT INTO #data(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
-		SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1 FROM #tmp a WITH(NOLOCK)
-			WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1 FROM #tmp x WITH(NOLOCK) WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
+	INSERT INTO #data
+		(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+	SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1
+	FROM #tmp a WITH(NOLOCK)
+	WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1
+		FROM #tmp x WITH(NOLOCK)
+		WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
 
 	UPDATE #data SET note = '', status = 1, creator_id = @user_id, updater_id = @user_id, create_time = @CurrDate, update_time = @CurrDate
 
 	BEGIN TRY
 		BEGIN TRANSACTION;
 			
-			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1 FROM #data x WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
-			INSERT INTO Attendance SELECT * FROM #data
+			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1
+	FROM #data x
+	WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
+			INSERT INTO Attendance
+	SELECT *
+	FROM #data
 
 		COMMIT TRANSACTION;
 	END TRY
@@ -213,49 +238,67 @@ AS
 	SELECT a.*, ISNULL(b.username, '') AS username, ISNULL(b.nickname, '') AS nickname
 			, ISNULL(c.course_code, '') AS course_code, ISNULL(d.course_name, '') AS course_name
 			, CONVERT(VARCHAR(10), a.attend_date, 103) AS attend_date_dmy, CONVERT(VARCHAR(5), a.attend_date, 103) AS attend_date_dm
-		FROM Attendance a
-			LEFT JOIN SysUser b ON a.student_id = b.user_id
-			LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
-			LEFT JOIN Course d ON c.course_code = d.course_code
+	FROM Attendance a
+		LEFT JOIN SysUser b ON a.student_id = b.user_id
+		LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
+		LEFT JOIN Course d ON c.course_code = d.course_code
 GO
-SELECT * FROM vattendance
+SELECT *
+FROM vattendance
 GO
 
 -- Store báo cáo tổng hợp dữ liệu điểm danh
 CREATE PROCEDURE AttendanceSummaryReport
-	@attend_date1 DATE = NULL, -- Filter date from
-	@attend_date2 DATE = NULL, -- Filter date to
-	@student_id INT = 0, -- Filter by student
-	@course_group_id INT = 0 -- Filter by course group
+	@attend_date1 DATE = NULL,
+	-- Filter date from
+	@attend_date2 DATE = NULL,
+	-- Filter date to
+	@student_id INT = 0,
+	-- Filter by student
+	@course_group_id INT = 0
+-- Filter by course group
 AS
 BEGIN
 	SET NOCOUNT ON
 
 	-- Data
-	SELECT a.* INTO #tmp FROM Attendance a WHERE @student_id IN (a.student_id, 0) AND @course_group_id IN (a.course_group_id, 0)
+	SELECT a.*
+	INTO #tmp
+	FROM Attendance a
+	WHERE @student_id IN (a.student_id, 0) AND @course_group_id IN (a.course_group_id, 0)
 		AND (@attend_date1 IS NULL OR a.attend_date >= @attend_date1) AND (@attend_date2 IS NULL OR a.attend_date <= @attend_date2)
 
 	-- Course current total day, attend absent
-	SELECT a.course_group_id, COUNT(DISTINCT a.attend_date) AS total_day INTO #totalDay FROM #tmp a GROUP BY a.course_group_id
+	SELECT a.course_group_id, COUNT(DISTINCT a.attend_date) AS total_day
+	INTO #totalDay
+	FROM #tmp a
+	GROUP BY a.course_group_id
 	SELECT a.course_group_id, a.student_id, SUM(IIF(a.attend_yn = 1, 1, 0)) AS total_attend, SUM(IIF(a.attend_yn = 0, 1, 0)) AS total_absent
-		INTO #totalAttend FROM #tmp a GROUP BY a.course_group_id, a.student_id
+	INTO #totalAttend
+	FROM #tmp a
+	GROUP BY a.course_group_id, a.student_id
 
 	-- Report
 	SELECT 5 AS xorder, a.course_group_id, ISNULL(c.course_code, '') AS course_code, ISNULL(d.classroom_code, '') AS classroom_code, ISNULL(d.shift_code, '') AS shift_code
 			, a.student_id, ISNULL(u.username, '') AS username, ISNULL(u.nickname, '') AS nickname
 			, ISNULL(b.total_day, 0) AS total_day, a.total_attend, a.total_absent
-		INTO #report FROM #totalAttend a
-			LEFT JOIN #totalDay b ON a.course_group_id = b.course_group_id
-			LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
-			LEFT JOIN ClassRoomShift d ON c.classroomshift_id = d.classroomshift_id
-			LEFT JOIN SysUser u ON a.student_id = u.user_id
-			
+	INTO #report
+	FROM #totalAttend a
+		LEFT JOIN #totalDay b ON a.course_group_id = b.course_group_id
+		LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
+		LEFT JOIN ClassRoomShift d ON c.classroomshift_id = d.classroomshift_id
+		LEFT JOIN SysUser u ON a.student_id = u.user_id
+
 	-- Group row
-	INSERT INTO #report(xorder, course_group_id, course_code, classroom_code, shift_code, student_id, username, nickname, total_day, total_attend, total_absent)
-		SELECT 4, a.course_group_id, MAX(a.course_code), MAX(a.classroom_code), MAX(a.shift_code), 0, '', '', 0, 0, 0
-			FROM #report a GROUP BY a.course_group_id
-	
-	SELECT * FROM #report ORDER BY course_group_id, xorder
+	INSERT INTO #report
+		(xorder, course_group_id, course_code, classroom_code, shift_code, student_id, username, nickname, total_day, total_attend, total_absent)
+	SELECT 4, a.course_group_id, MAX(a.course_code), MAX(a.classroom_code), MAX(a.shift_code), 0, '', '', 0, 0, 0
+	FROM #report a
+	GROUP BY a.course_group_id
+
+	SELECT *
+	FROM #report
+	ORDER BY course_group_id, xorder
 	DROP TABLE #tmp, #totalAttend, #report
 END
 GO
@@ -265,8 +308,10 @@ GO
 
 -- Store báo cáo chi tiết dữ liệu điểm danh theo nhóm môn
 CREATE PROCEDURE AttendanceDetailReport
-	@course_group_id INT, -- Filter by course group, not allow blank
-	@student_id INT = 0 -- Filter by student
+	@course_group_id INT,
+	-- Filter by course group, not allow blank
+	@student_id INT = 0
+-- Filter by student
 AS
 BEGIN
 	SET NOCOUNT ON
@@ -275,22 +320,32 @@ BEGIN
 	SELECT @q = '', @xCols = '', @xValues = ''
 
 	-- Data
-	SELECT a.* INTO #tmp FROM Attendance a WHERE a.course_group_id = @course_group_id AND @student_id IN (a.student_id, 0)
+	SELECT a.*
+	INTO #tmp
+	FROM Attendance a
+	WHERE a.course_group_id = @course_group_id AND @student_id IN (a.student_id, 0)
 
 	-- Total day
-	SELECT ROW_NUMBER() OVER(ORDER BY a.attend_date) AS stt, a.attend_date, CAST('' AS VARCHAR(32)) AS xCol, CAST('' AS NVARCHAR(256)) AS xheader INTO #days FROM #tmp a GROUP BY a.attend_date ORDER BY a.attend_date
+	SELECT ROW_NUMBER() OVER(ORDER BY a.attend_date) AS stt, a.attend_date, CAST('' AS VARCHAR(32)) AS xCol, CAST('' AS NVARCHAR(256)) AS xheader
+	INTO #days
+	FROM #tmp a
+	GROUP BY a.attend_date
+	ORDER BY a.attend_date
 	UPDATE #days SET xCol = 'col' + RTRIM(stt), xheader = N'Buổi ' + RTRIM(stt)
-	SELECT @xCols += ', ' + a.xCol, @xValues += ', 0' FROM #days a ORDER BY a.stt
+	SELECT @xCols += ', ' + a.xCol, @xValues += ', 0'
+	FROM #days a
+	ORDER BY a.stt
 
 	-- Report struct
 	SELECT @q = 'select top 0 a.course_group_id, a.student_id' + REPLACE(@xCols, ', ', ', cast(0 as tinyint) as ') + ' into #data from attendance a where 1=0
 	insert into #data (course_group_id, student_id' + @xCols + ') select a.course_group_id, a.student_id' + @xValues + ' from #tmp a group by a.course_group_id, a.student_id'
-	
+
 	-- Update values
 	SELECT @q += '
 	update #data set ' + b.xCol + ' = b.attend_yn from #data a join #tmp b on a.course_group_id = b.course_group_id and a.student_id = b.student_id
 		and b.attend_date = ''' + CONVERT(VARCHAR(8), a.attend_date, 112) + '''
-	' FROM #tmp a JOIN #days b ON a.attend_date = b.attend_date
+	'
+	FROM #tmp a JOIN #days b ON a.attend_date = b.attend_date
 
 	-- Get course and user info
 	SET @q += '
@@ -304,7 +359,8 @@ BEGIN
 	EXEC (@q)
 
 	-- Header info
-	SELECT * FROM #days
+	SELECT *
+	FROM #days
 	DROP TABLE #tmp
 END
 GO
@@ -314,25 +370,25 @@ GO
 
 --- Store để lấy course group cho sinh viên Update (30/07) | Duy có update ở trên là trả về thêm avatar_path ở GetTeacherCourseInfo
 -- 31/07
-Go 
+Go
 CREATE PROCEDURE GetCourseGroupInfoByStudentId
-    @student_id INT
+	@student_id INT
 AS
 BEGIN
-    SELECT 
-        cg.course_group_id,
-        cg.group_code,
-        cls.classroom_code,
-        su.nickname,
+	SELECT
+		cg.course_group_id,
+		cg.group_code,
+		cls.classroom_code,
+		su.nickname,
 		su.avatar_path,
-        c.course_name
-    FROM
-        CourseGroupStudentList cgsl
-    INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
-    INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
-    INNER JOIN sysUser su ON cg.teacher_id = su.user_id
-    INNER JOIN Course c ON cg.course_code = c.course_code
-    WHERE 
+		c.course_name
+	FROM
+		CourseGroupStudentList cgsl
+		INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
+		INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
+		INNER JOIN sysUser su ON cg.teacher_id = su.user_id
+		INNER JOIN Course c ON cg.course_code = c.course_code
+	WHERE 
         cgsl.student_id = @student_id;
 END;
 
@@ -340,44 +396,49 @@ END;
 
 -- 01/08 -- Xem các course group đang hoạt động
 Go
-CREATE VIEW ActiveCourseGroups AS
-SELECT 
-    cg.course_group_id,
-    cg.course_code,
-    cg.group_code,
-    c.course_name
-FROM 
-    CourseGroup cg
-INNER JOIN 
-    Course c ON cg.course_code = c.course_code
-WHERE 
+CREATE VIEW ActiveCourseGroups
+AS
+	SELECT
+		cg.course_group_id,
+		cg.course_code,
+		cg.group_code,
+		c.course_name
+	FROM
+		CourseGroup cg
+		INNER JOIN
+		Course c ON cg.course_code = c.course_code
+	WHERE 
     cg.status = 1;
 
 Go
-Select * from ActiveCourseGroups
+Select *
+from ActiveCourseGroups
 
 -- 07/08 View xem tất cả course group
 Go
-CREATE VIEW CourseGroupInfoView AS
-SELECT
-    cg.course_group_id,
-    cg.group_code,
-    cg.classroomshift_id,
-	cg.semester_year_id,
-	cg.status,
-    c.course_name,
-    su.avatar_path,
-    su.nickname,
-    cls.classroom_code,
-    cls.shift_code
-FROM
-    CourseGroup cg
-    INNER JOIN Course c ON cg.course_code = c.course_code
-    INNER JOIN sysUser su ON cg.teacher_id = su.user_id
-    INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id;
+CREATE VIEW CourseGroupInfoView
+AS
+	SELECT
+		cg.course_group_id,
+		cg.group_code,
+		cg.classroomshift_id,
+		cg.semester_year_id,
+		cg.status,
+		cg.teacher_id,
+		c.course_name,
+		su.avatar_path,
+		su.nickname,
+		cls.classroom_code,
+		cls.shift_code
+	FROM
+		CourseGroup cg
+		INNER JOIN Course c ON cg.course_code = c.course_code
+		INNER JOIN sysUser su ON cg.teacher_id = su.user_id
+		INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id;
 GO
 
-select * from CourseGroupInfoView
+select *
+from CourseGroupInfoView
 
 -- 08/08
 -- View lấy thông tin danh sách sinh viên của lớp học
@@ -385,10 +446,48 @@ Go
 CREATE VIEW vCourseGroupStudentList
 AS
 	SELECT a.*, b.username AS student_username, b.nickname AS student_nickname, b.avatar_path AS student_avatar_path
-		FROM CourseGroupStudentList a
-			JOIN SysUser b ON a.student_id = b.user_id AND b.avatar_path <> '' AND b.status = 1
-		WHERE a.status = 1
+	FROM CourseGroupStudentList a
+		JOIN SysUser b ON a.student_id = b.user_id AND b.avatar_path <> '' AND b.status = 1
+	WHERE a.status = 1
 GO
-SELECT * FROM vCourseGroupStudentList WHERE course_group_id = 100
+SELECT *
+FROM vCourseGroupStudentList
+WHERE course_group_id = 100
 
--- chạy lại CourseGroupInfoView nha Phước 08/08
+-- chạy lại CourseGroupInfoView nha Phước 10/08
+
+-- 10/08  All Schedule xem tất cả thời khóa biểu
+Go
+CREATE VIEW AllSchedules
+AS
+	SELECT
+		s.Semester_year_id,
+		s.week_from,
+		s.week_to,
+		s.week_day,
+		s.exclude_week,
+		s.status,
+		s.course_group_id,
+		s.classroomshift_id,
+		crs.shift_code,
+		crs.classroom_code,
+		sh.start_time,
+		sh.end_time,
+		cg.course_code,
+		cg.group_code,
+		c.course_name,
+		su.nickname,
+		cgs.student_id,
+		cgs.ban_yn
+	FROM CourseGroupStudentList cgs
+		INNER JOIN Schedule s ON cgs.course_group_id = s.course_group_id
+		INNER JOIN classroomshift crs ON s.classroomshift_id = crs.classroomshift_id
+		INNER JOIN shift sh ON crs.shift_code = sh.shift_code
+		INNER JOIN coursegroup cg ON s.course_group_id = cg.course_group_id
+		INNER JOIN course c ON cg.course_code = c.course_code
+		INNER JOIN sysUser su ON cg.teacher_id = su.user_id;
+Go
+
+select *
+from AllSchedules
+where student_id = 65 and status = 1

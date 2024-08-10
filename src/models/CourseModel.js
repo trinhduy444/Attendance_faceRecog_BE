@@ -1,6 +1,7 @@
 const sql = require('msnodesqlv8');
 const db = require('../utils/SqlConnection');
-
+const classRoomModel = require('./ClassRoomModel')
+const userModel = require('./UserModel');
 class CourseModel {
     // Get course by Code
     getCourseByCode(courseCode) {
@@ -178,8 +179,8 @@ class CourseModel {
 
     createCourseGroupStudentList(course_group_id, userId, creator_id) {
         return new Promise((resolve, reject) => {
-            const q = 'INSERT INTO CourseGroupStudentList (course_group_id, student_id, status, creator_id, create_time) VALUES (?, ?, ?, ?, getdate())';
-            const params = [course_group_id, userId, 1, creator_id];
+            const q = 'INSERT INTO CourseGroupStudentList (course_group_id, student_id, total_absent, ban_yn,status, creator_id, create_time) VALUES (?, ?,?,?, ?, ?, getdate())';
+            const params = [course_group_id, userId, 0, 0, 1, creator_id];
             db.query(q, params, (err, result) => {
                 if (err) {
                     reject(err);
@@ -189,37 +190,206 @@ class CourseModel {
             });
         });
     }
-
-    createCourseGroup(classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, creator_id,semester_year_id) {
+    getCourseGroupID(course_code, group_code) {
         return new Promise((resolve, reject) => {
+            const q = 'select course_group_id from CourseGroup where course_code = ? and group_code = ?';
+            const params = [course_code, group_code];
+            db.query(q, params, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result[0].course_group_id);
+                }
+            });
+        });
+    }
+    createMultiStudentList = async (studentLists, creator_id) => {
+        console.log("create", studentLists)
+        return new Promise(async (resolve, reject) => {
+
+            try {
+                const values = await Promise.all(studentLists.map(async (student) => {
+                    const { MSSV, 'Mã môn': course_code, 'Nhóm': group_code } = student;
+
+                    const user_id = await userModel.getUserIdByUsername(MSSV);
+                    console.log("user_id", user_id[0].user_id)
+                    const course_group_id = await this.getCourseGroupID(course_code, group_code);
+                    console.log("course_group", course_group_id)
+
+                    return [
+                        course_group_id,
+                        user_id[0].user_id,
+                        0,
+                        0,
+                        1,
+                        creator_id
+                    ];
+                }));
+
+                // Prepare the query
+                const q = `
+                INSERT INTO CourseGroupStudentList (course_group_id, student_id,total_absent,ban_yn, status, creator_id, create_time)
+                VALUES ${values.map(() => '(?, ?, ?, ?, ?, ?,getDate())').join(', ')}
+            `;
+
+                const flattenedValues = values.flat();
+
+                db.query(q, flattenedValues, (err, result) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    else {
+                        resolve(result);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error in createMultiStudentList:', error);
+                throw error;
+            }
+        })
+    };
+
+
+    createCourseGroup = async (classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, creator_id, semester_year_id, week_day) => {
+        return new Promise(async (resolve, reject) => {
             const q = 'INSERT INTO CourseGroup (course_code, group_code, teacher_id, total_student_qty, status, creator_id, create_time,classroomshift_id,semester_year_id) OUTPUT INSERTED.course_group_id VALUES (?, ?, ?, ?, ?, ?, getdate(),?,?)';
-            const params = [course_code, group_code, teacher_id, total_student_qty, 1, creator_id, classroomshift_id,semester_year_id];
+            const params = [course_code, group_code, teacher_id, total_student_qty, 1, creator_id, classroomshift_id, semester_year_id];
+
+            try {
+                db.query(q, params, async (err, result) => {
+                    if (err) {
+                        return reject(err);
+                    }
+
+                    const course_group_id = result[0].course_group_id;
+                    const semesterInfo = await this.getSemesterById(semester_year_id);
+
+                    await this.createSchedule(course_group_id, classroomshift_id, semester_year_id, semesterInfo[0].week_from, semesterInfo[0].week_to, week_day, semesterInfo[0].exclude_week, creator_id);
+
+                    await Promise.all(usersId.map(userid => this.createCourseGroupStudentList(course_group_id, userid, creator_id)));
+
+                    resolve({ course_group_id, ...result[0] });
+                });
+            } catch (error) {
+                reject(error);
+            }
+        });
+    };
+    createMutipleCourseGroup = async (courseGroups, creator_id) => {
+        try {
+            const values = await Promise.all(courseGroups.map(async (cg) => {
+                const { 'Mã môn': course_code, 'Mã nhóm': group_code, 'Sĩ số': total_student_qty, 'Thứ': week_day, 'Tuần bắt đầu': week_from,
+                    'Tuần kết thúc': week_to, 'Tuần nghỉ': exclude_week, 'Ca học': shift,
+                    'Phòng': classroom_code, 'Học kỳ': semester, 'Năm học': year, 'MSGV': MSGV } = cg;
+
+
+                const shift_code = `ca${shift}`;
+                const classroomshift_id = await classRoomModel.setRoomNotEmpty(shift_code, classroom_code, creator_id);
+                const [{ semester_year_id }] = await this.getSemesterIDByInfo(semester, year);
+                const teacher_id = await userModel.getTeacherIDByMSGV(MSGV);
+                const status = 1;
+                return {
+                    courseGroup: [
+                        course_code,
+                        group_code,
+                        teacher_id,
+                        total_student_qty,
+                        classroomshift_id,
+                        semester_year_id,
+                        status,
+                        creator_id
+                    ],
+                    schedule: [
+                        classroomshift_id,
+                        semester_year_id,
+                        week_day,
+                        week_from,
+                        week_to,
+                        exclude_week,
+                        creator_id
+                    ]
+                };
+            }));
+
+            const courseGroupValues = values.map(v => v.courseGroup).flat();
+            const scheduleValues = values.map(v => v.schedule);
+
+            const q = `
+                INSERT INTO CourseGroup (course_code, group_code, teacher_id, total_student_qty, classroomshift_id, semester_year_id,status, creator_id, create_time)
+                OUTPUT INSERTED.course_group_id
+                VALUES ${values.map(() => '(?, ?, ?, ?, ?, ?, ?, ?,getDate())').join(', ')}
+            `;
+
+            db.query(q, courseGroupValues, async (err, result) => {
+                if (err) {
+                    console.error('Error inserting course groups:', err);
+                    throw err;
+                }
+
+                for (let i = 0; i < result.length; i++) {
+                    const course_group_id = parseInt(result[i].course_group_id);
+                    const [classroomshift_id,
+                        semester_year_id,
+                        week_day,
+                        week_from,
+                        week_to,
+                        exclude_week,
+                        creator_id
+                    ] = scheduleValues[i];
+
+                    await this.createSchedule(
+                        course_group_id,
+                        classroomshift_id,
+                        semester_year_id,
+                        week_from,
+                        week_to,
+                        week_day,
+                        exclude_week,
+                        creator_id
+                    );
+                }
+            });
+        } catch (error) {
+            console.error('Error inserting course groups:', error);
+            throw error;
+        }
+    };
+
+
+
+
+    createSchedule = (course_group_id, classroomshift_id, semester_year_id, week_from, week_to, week_day, exclude_week, creator_id) => {
+        if (exclude_week === null || exclude_week === undefined) {
+            exclude_week = '';
+        }
+        return new Promise((resolve, reject) => {
+            const q = `
+                INSERT INTO Schedule (course_group_id, classroomshift_id, semester_year_id, week_from, week_to, week_day , exclude_week,status, creator_id, create_time) 
+                VALUES (?, ?, ?, ?, ?, ?,?, ?, ?, getDate())
+            `;
+            const params = [course_group_id, classroomshift_id, semester_year_id, week_from, week_to, week_day, exclude_week, 1, creator_id];
 
             db.query(q, params, (err, result) => {
                 if (err) {
                     reject(err);
                 } else {
-                    const course_group_id = result[0].course_group_id;
-
-                    Promise.all(usersId.map(userid => this.createCourseGroupStudentList(course_group_id, userid, creator_id)))
-                        .then(() => resolve({ course_group_id, ...result[0] }))
-                        .catch(err => reject(err));
+                    resolve(result);
                 }
             });
         });
-    }
-
-    getCourseGroupByTeacherId(teacher_id,semester_year_id) {
+    };
+    getCourseGroupByTeacherId(teacher_id, semester_year_id) {
         return new Promise((resolve, reject) => {
             // const q = 'EXEC GetTeacherCourseInfo @teacher_id = ?'
             let q = `SELECT * FROM CourseGroupInfoView where teacher_id = ?`;
             let params = [teacher_id];
-    
+
             if (semester_year_id) {
                 q += ` and semester_year_id = ?`;
                 params.push(semester_year_id);
             }
-    
+
             db.query(q, params, (err, result) => {
                 if (err) {
                     reject(err)
@@ -272,12 +442,12 @@ class CourseModel {
         return new Promise((resolve, reject) => {
             let q = `SELECT * FROM CourseGroupInfoView`;
             let params = [];
-    
+
             if (semester_year_id) {
                 q += ` WHERE semester_year_id = ?`;
                 params.push(semester_year_id);
             }
-    
+
             db.query(q, params, (err, result) => {
                 if (err) {
                     reject(err);
@@ -287,7 +457,7 @@ class CourseModel {
             });
         });
     }
-    
+
     checkInCourseGroup(courseGroupId, studentId) {
         return new Promise((resolve, reject) => {
             const query = `
@@ -306,10 +476,37 @@ class CourseModel {
             });
         });
     };
-    getAllSemester(){
+    getAllSemester() {
         return new Promise((resolve, reject) => {
             let q = `select * from SemesterYear`;
             db.query(q, (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+    }
+    getSemesterById(semester_year_id) {
+
+        return new Promise((resolve, reject) => {
+            let q = `select * from SemesterYear where semester_year_id = ?`;
+            db.query(q, [semester_year_id], (err, result) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    // console.log("ress",result);
+                    resolve(result);
+                }
+            });
+        });
+    }
+    getSemesterIDByInfo(semester, year) {
+        return new Promise((resolve, reject) => {
+            let q = `select semester_year_id from SemesterYear where semester = ? and year = ?`;
+            const params = [semester, year];
+            db.query(q, params, (err, result) => {
                 if (err) {
                     reject(err);
                 } else {

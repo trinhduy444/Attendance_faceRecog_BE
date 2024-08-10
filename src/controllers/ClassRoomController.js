@@ -61,6 +61,26 @@ class ClassRoomController {
             });
         }
     }
+    getAllClassRooms = async(req, res) => {
+        try {
+            const user_id = req.user.user_id;
+            if(!user_id) throw new ForbiddenError("You not allowed")
+
+            const rooms = await classRoomModel.getAllClassrooms();
+            return res.status(200).json({
+                status: 200,
+                message: "Get all rooms successfully",
+                metadata: rooms,
+            });
+        } catch(error) {
+            console.error(error);
+            return res.status(500).json({
+                status: 500,
+                message: "Internal server error",
+            });
+        }
+
+    }
     getClassRoomsFilter = async (req, res) => {
         try {
             const user_id = req.user.user_id;
