@@ -63,6 +63,25 @@ class UserModel {
             });
         });
     }
+    checkExistUser(username) {
+        username = sql.VarChar(username);
+        return new Promise((resolve, reject) => {
+            const q = 'select user_id from sysuser where username = ? and status = ?';
+            const params = [username, 1];
+
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(false);
+                } else {
+                    if (rows.length > 0) {
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                }
+            });
+        });
+    }
 
     // Get user_id by username
     getUserIdByUsername(username) {
