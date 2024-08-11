@@ -376,7 +376,19 @@ class UserModel {
             });
         });
     }
-
+    getImageAndNicknameByUsername(username) {
+        return new Promise((resolve, reject) => {
+            const q = 'select avatar_path, nickname, username from sysUser where username = ? and status = ?';
+            db.query(q, [username, 1], (err, rows) => {
+                if (err) {
+                    console.log(err)
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
     updateUser(oldKey, user) {
 
     }

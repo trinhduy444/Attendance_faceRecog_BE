@@ -214,7 +214,7 @@ class AdminController {
             });
 
         } catch (error) {
-            res.status(500).json({ message: 'Lỗi khi xử lý upload ảnh', error: error.message });
+            res.status(400).json({ status: 500, message: 'Lỗi khi xử lý upload ảnh', error: error.message });
         }
     };
     getTeachersByFaculty = async (req, res) => {

@@ -18,4 +18,5 @@ router.post('/profile', authMiddleware.isLogin, userController.getProfile)
 
 // router.delete('/', null);
 
+router.post('/getImageAndNicknameByUsername',authMiddleware.isLogin, userController.getImageAndNicknameByUsername)
 module.exports = router;

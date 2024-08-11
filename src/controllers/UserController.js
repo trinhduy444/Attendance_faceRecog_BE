@@ -76,7 +76,18 @@ class UserController {
 
     }
     getSomeInfo(req, res) {
-        
+
+    }
+    getImageAndNicknameByUsername = async (req, res) => {
+        try {
+            const {username} = req.body;
+            if (!username) throw new ForbiddenError("Username must be provided")
+            const user = await userModel.getImageAndNicknameByUsername(username);
+            return res.status(200).json({ status: 200, message: "Get Image and nickname Successfully", metadata: user[0] })
+        } catch (err) {
+            return res.status(400).json({ status: 500, message: err.message });
+        }
+
     }
 }
 
