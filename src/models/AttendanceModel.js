@@ -65,6 +65,26 @@ class AttendanceRawDataModel {
         });
     }
 
+    // Add new Attendance Raw Data with server date time
+    addAttendanceRawDataServerDateTime(attendanceRawData, userId) {
+        let { studentId, courseGroupId, attendType, attendImagePath } = attendanceRawData;
+
+        studentId = sql.Int(studentId);
+        courseGroupId = sql.Int(courseGroupId);
+        attendType = sql.TinyInt(attendType);
+        attendImagePath = sql.VarChar(attendImagePath);
+        userId = sql.Int(userId);
+
+        return new Promise((resolve, reject) => {
+            const q = 'insert into AttendanceRawData (student_id, course_group_id, attend_date, attend_type, attend_time, attend_image_path, creator_id, create_time) select ?, ?, getdate(), ?, convert(varchar(5), getdate(), 108), ?, ?, getdate()';
+            const params = [studentId, courseGroupId, attendType, attendImagePath, userId];
+            db.query(q, params, (err, rows) => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+    }
+
     /*
     // delete AttendanceRawData
     deleteAttendanceRawData(key) {

@@ -323,6 +323,7 @@ SELECT * FROM SysNotify
 -- Update lại table SysNotify (quan hệ n-n sinh ra bảng NotifyUser) 31/07
 -- Update 1/8 thếm file_link| drop table sysnotify rồi chạy lại nhé Phước
 
+GO
 CREATE TABLE NotifyUser
 (
 	[notify_user_id] INT IDENTITY(1, 1) NOT NULL,
@@ -337,12 +338,17 @@ CREATE TABLE NotifyUser
 ALTER TABLE NotifyUser ADD CONSTRAINT PK_NotifyUser PRIMARY KEY CLUSTERED(notify_user_id) ON [PRIMARY]
 ALTER TABLE NotifyUser ADD CONSTRAINT FK_NotifyUser_UserReceiver FOREIGN KEY(receiver_id) REFERENCES SysUser(user_id)
 ALTER TABLE NotifyUser ADD CONSTRAINT FK_NotifyUser_SysNotify FOREIGN KEY(notify_id) REFERENCES SysNotify(notify_id)
+
+GO
 -- Update nam hoc, hoc ki
 CREATE TABLE SemesterYear
 (
 	[semester_year_id] INT IDENTITY(1, 1) NOT NULL,
-	[semester_year_name] Nvarchar(64),
+	[semester_year_name] NVARCHAR(64),
 	[semester] INT NULL,
+	[week_from] INT NULL,
+	[week_to] INT NULL,
+	[exclude_week] VARCHAR(32),
 	[year] INT NULL,
 	[status] BIT NULL,
 	[creator_id] INT NULL,
@@ -351,8 +357,17 @@ CREATE TABLE SemesterYear
 	[update_time] DATETIME NULL
 )
 ALTER TABLE SemesterYear ADD CONSTRAINT PK_SemesterYear PRIMARY KEY CLUSTERED(semester_year_id) ON [PRIMARY]
-Alter table CourseGroup add semester_year_id int
--- vào trong attendanceSystemData.sql để chạy thêm dữ liệu năm học học kỳ.
 
--- Update 8-8 CHẠY LẠI SCHEDULE TABLE
-alter table SemesterYear add week_from int, week_to int, exclude_week varchar(32)
+GO
+CREATE TABLE SysUserFace
+(
+	[user_face_id] INT IDENTITY(1, 1) NOT NULL,
+	[user_id] INT NOT NULL,
+	[face_image_path] VARCHAR(128) NULL,
+	[status] BIT NULL,
+	[creator_id] INT NULL,
+	[updater_id] INT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL
+)
+ALTER TABLE SysUserFace ADD CONSTRAINT PK_SysUserFace PRIMARY KEY CLUSTERED(user_face_id) ON [PRIMARY]

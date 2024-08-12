@@ -16,5 +16,4 @@ router.post('/createTeachers', authMiddleware.isLogin, authMiddleware.isAdmin, A
 router.post('/uploadimage', authMiddleware.isLogin,upload.single('image'), AdminController.uploadImage);
 router.post('/uploadimages', authMiddleware.isLogin,authMiddleware.isAdmin, upload.array('images'), AdminController.uploadImages);
 
-
 module.exports = router;
