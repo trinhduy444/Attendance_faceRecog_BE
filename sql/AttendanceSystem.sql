@@ -354,3 +354,6 @@ Alter table CourseGroup add semester_year_id int
 
 -- Update 8-8 CHẠY LẠI SCHEDULE TABLE
 alter table SemesterYear add week_from int, week_to int, exclude_week varchar(32)
+
+alter table Schedule add total_shift int
+

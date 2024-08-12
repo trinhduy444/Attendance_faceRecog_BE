@@ -233,6 +233,18 @@ class AttendanceController {
             res.status(500).json({ message: 'Lỗi khi upload ảnh', error: error.message });
         }
     }
+    checkStatusStudentInCourseGroup = async (req, res) =>{
+        try{
+            const {courseGroupId, studentId} = req.body;
+            console.log(courseGroupId, studentId);
+            const result = await attendanceModel.checkStatusStudentInCourseGroup(courseGroupId, studentId)
+            return res.status(200).json({metadata: result})
+        } catch (error) {
+            console.error(error)
+            res.status(500).json({ message: 'Lỗi khi upload ảnh', error: error.message });
+        }
+        
+    }
 }
 
 module.exports = new AttendanceController;

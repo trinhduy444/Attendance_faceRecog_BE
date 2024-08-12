@@ -5,7 +5,8 @@ class NotifyController {
     createNotification = async (req, res) => {
         try {
             const user_id = req.user.user_id;
-            if (user_id !== 1 && user_id !== 2) {
+            const role_id = req.user.role_id;
+            if (role_id !== 1 && role_id !== 2) {
                 throw new ForbiddenError("You are not allowed here");
             }
             const { title, file_link, content, type, valueType } = req.body;

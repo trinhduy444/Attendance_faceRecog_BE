@@ -204,7 +204,7 @@ class CourseModel {
         });
     }
     createMultiStudentList = async (studentLists, creator_id) => {
-        console.log("create", studentLists)
+        // console.log("create", studentLists)
         return new Promise(async (resolve, reject) => {
 
             try {
@@ -212,9 +212,9 @@ class CourseModel {
                     const { MSSV, 'Mã môn': course_code, 'Nhóm': group_code } = student;
 
                     const user_id = await userModel.getUserIdByUsername(MSSV);
-                    console.log("user_id", user_id[0].user_id)
+                    // console.log("user_id", user_id[0].user_id)
                     const course_group_id = await this.getCourseGroupID(course_code, group_code);
-                    console.log("course_group", course_group_id)
+                    // console.log("course_group", course_group_id)
 
                     return [
                         course_group_id,
@@ -255,7 +255,6 @@ class CourseModel {
         return new Promise(async (resolve, reject) => {
             const q = 'INSERT INTO CourseGroup (course_code, group_code, teacher_id, total_student_qty, status, creator_id, create_time,classroomshift_id,semester_year_id) OUTPUT INSERTED.course_group_id VALUES (?, ?, ?, ?, ?, ?, getdate(),?,?)';
             const params = [course_code, group_code, teacher_id, total_student_qty, 1, creator_id, classroomshift_id, semester_year_id];
-
             try {
                 db.query(q, params, async (err, result) => {
                     if (err) {
@@ -264,8 +263,9 @@ class CourseModel {
 
                     const course_group_id = result[0].course_group_id;
                     const semesterInfo = await this.getSemesterById(semester_year_id);
+                    const total_shift = parseInt(semesterInfo[0].week_to) - parseInt(semesterInfo[0].week_from)
 
-                    await this.createSchedule(course_group_id, classroomshift_id, semester_year_id, semesterInfo[0].week_from, semesterInfo[0].week_to, week_day, semesterInfo[0].exclude_week, creator_id);
+                    await this.createSchedule(course_group_id, classroomshift_id, semester_year_id, semesterInfo[0].week_from, semesterInfo[0].week_to, week_day, semesterInfo[0].exclude_week, total_shift, creator_id);
 
                     await Promise.all(usersId.map(userid => this.createCourseGroupStudentList(course_group_id, userid, creator_id)));
 
@@ -280,7 +280,7 @@ class CourseModel {
         try {
             const values = await Promise.all(courseGroups.map(async (cg) => {
                 const { 'Mã môn': course_code, 'Mã nhóm': group_code, 'Sĩ số': total_student_qty, 'Thứ': week_day, 'Tuần bắt đầu': week_from,
-                    'Tuần kết thúc': week_to, 'Tuần nghỉ': exclude_week, 'Ca học': shift,
+                    'Tuần kết thúc': week_to, 'Tuần nghỉ': exclude_week, 'Ca học': shift,'Tổng ca':total_shift,
                     'Phòng': classroom_code, 'Học kỳ': semester, 'Năm học': year, 'MSGV': MSGV } = cg;
 
 
@@ -307,6 +307,7 @@ class CourseModel {
                         week_from,
                         week_to,
                         exclude_week,
+                        total_shift,
                         creator_id
                     ]
                 };
@@ -335,6 +336,7 @@ class CourseModel {
                         week_from,
                         week_to,
                         exclude_week,
+                        total_shift,
                         creator_id
                     ] = scheduleValues[i];
 
@@ -346,6 +348,7 @@ class CourseModel {
                         week_to,
                         week_day,
                         exclude_week,
+                        total_shift,
                         creator_id
                     );
                 }
@@ -359,16 +362,16 @@ class CourseModel {
 
 
 
-    createSchedule = (course_group_id, classroomshift_id, semester_year_id, week_from, week_to, week_day, exclude_week, creator_id) => {
+    createSchedule = (course_group_id, classroomshift_id, semester_year_id, week_from, week_to, week_day, exclude_week, total_shift, creator_id) => {
         if (exclude_week === null || exclude_week === undefined) {
             exclude_week = '';
         }
         return new Promise((resolve, reject) => {
             const q = `
-                INSERT INTO Schedule (course_group_id, classroomshift_id, semester_year_id, week_from, week_to, week_day , exclude_week,status, creator_id, create_time) 
-                VALUES (?, ?, ?, ?, ?, ?,?, ?, ?, getDate())
+                INSERT INTO Schedule (course_group_id, classroomshift_id, semester_year_id, week_from, week_to, week_day , exclude_week,total_shift,status, creator_id, create_time) 
+                VALUES (?, ?, ?, ?, ?, ?,?, ?, ?, ?, getDate())
             `;
-            const params = [course_group_id, classroomshift_id, semester_year_id, week_from, week_to, week_day, exclude_week, 1, creator_id];
+            const params = [course_group_id, classroomshift_id, semester_year_id, week_from, week_to, week_day, exclude_week, total_shift, 1, creator_id];
 
             db.query(q, params, (err, result) => {
                 if (err) {

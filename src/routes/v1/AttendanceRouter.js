@@ -31,4 +31,6 @@ router.get('/report/detail', authMiddleware.isLogin, attendanceController.getAtt
 // Upload Image
 router.post('/uploadimage', authMiddleware.isLogin,upload.single('image'), attendanceController.uploadImage);
 
+router.post('/checkStatusStudentInCourseGroup', authMiddleware.isLogin, attendanceController.checkStatusStudentInCourseGroup)
+
 module.exports = router;

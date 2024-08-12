@@ -1,6 +1,7 @@
 const sql = require('msnodesqlv8');
 const db = require('../utils/SqlConnection');
-
+const sendMail = require('../config/nodeMailerConfig');
+const { warningMailCG, banMailCG } = require('../helpers/mailContentHelper')
 class AttendanceRawDataModel {
     // Get list of attendance raw data
     getAttendanceRawDatas(studentId, courseGroupId, attendDate, attendType) {
@@ -15,7 +16,7 @@ class AttendanceRawDataModel {
         return new Promise((resolve, reject) => {
             const q = 'select * from attendancerawdata where ? in (student_id, 0) and ? in (course_group_id, 0) and (? is null or attend_date = ?) and ? in (attend_type, 0)';
             const params = [studentId, courseGroupId, attendDate, attendDate, attendType];
-            
+
             db.query(q, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -25,12 +26,12 @@ class AttendanceRawDataModel {
             });
         });
     }
-    
+
     // Get all AttendanceRawDatas
     getAllAttendanceRawDatas() {
         return new Promise((resolve, reject) => {
             const q = 'select * from attendancerawdata';
-            
+
             db.query(q, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -116,7 +117,7 @@ class AttendanceRawDataModel {
         return new Promise((resolve, reject) => {
             const q = 'select * from vattendance where ? in (student_id, 0) and ? in (course_group_id, 0) and (? is null or attend_date = ?)';
             const params = [studentId, courseGroupId, attendDate, attendDate];
-            
+
             db.query(q, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -126,7 +127,7 @@ class AttendanceRawDataModel {
             });
         });
     }
-    
+
     // Update exists attendance
     updateAttendance(oldKey, attendance, userId) {
         let { studentId, courseGroupId, attendDate } = oldKey;
@@ -138,7 +139,7 @@ class AttendanceRawDataModel {
         studentId = sql.Int(studentId);
         courseGroupId = sql.Int(courseGroupId);
         attendDate = sql.Date(attendDate);
-        
+
         attendYn = sql.Bit(attendYn);
         enterTime = sql.VarChar(enterTime);
         note = sql.NVarChar(note);
@@ -211,13 +212,52 @@ class AttendanceRawDataModel {
                 if (err) reject(err);
 
                 result.push(rows);
-                
+
                 if (result.length == 2 || cout == 2) {
                     resolve(result)
                 }
                 cout++;
             });
         });
+    }
+    checkStatusStudentInCourseGroup(courseGroupId, studentId) {
+        courseGroupId = sql.Int(courseGroupId);
+        studentId = sql.Int(studentId);
+
+        return new Promise((resolve, reject) => {
+            const q = "EXEC sp_CheckAttendanceStatus ?, ?";
+            const params = [courseGroupId, studentId];
+            db.query(q, params, async (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    const res = await this.handleSendMail(rows[0]);
+                    console.log("row", rows[0]);
+                    resolve(res);
+                }
+            });
+        });
+    }
+    handleSendMail = async (result) => {
+        let title;
+        let content;
+        if (!result) return false;
+        if (result.type == 'no') {
+            return false;
+        } else if (result.type == 'warning') {
+            console.log('here')
+            title = `Cảnh báo sinh viên ${result?.student_name} nghỉ học nhiều`;
+            content = warningMailCG(result)
+                await sendMail(title, content, result.student_email)
+            return true;
+        }
+        else if (result.type == 'ban') {
+            title = `CẤM THI. Cảnh báo sinh viên ${result?.student_name}`;
+            content = banMailCG(result)
+                await sendMail(title, content, result.student_email)
+            return true;
+        }
+        return false;
     }
 }
 
