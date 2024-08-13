@@ -29,10 +29,10 @@ class AuthController {
 
                     const { privateKey, publicKey } = createKeys();
 
-                    const { user_id, nickname, email, phone, role_id } = user;
+                    const { user_id, nickname, email, phone, role_id, username } = user;
 
                     const { accessToken, refreshToken } = await createTokenPair(
-                        { user_id, nickname, email, phone, role_id }, privateKey, publicKey
+                        { user_id, nickname, email, phone, role_id, username }, privateKey, publicKey
                     )
                     keyStoreModel.createKeyStore(user.user_id, privateKey, publicKey, refreshToken).then((key) => {
                         res.cookie("refreshToken", refreshToken, {
@@ -42,7 +42,7 @@ class AuthController {
                         return res.status(200).json({
                             status: 200,
                             message: "Login success.",
-                            metadata: getInfoData({ fields: ["user_id", "nickname", "email", "phone", "role_id"], object: user }),
+                            metadata: getInfoData({ fields: ["user_id", "nickname", "email", "phone", "role_id", "username"], object: user }),
                             accessToken: accessToken,
                             refreshToken: refreshToken
                         })
@@ -70,10 +70,10 @@ class AuthController {
         if (req.user) {
             const user = req.user
             const { privateKey, publicKey } = createKeys();
-            const { user_id, nickname, email, phone, role_id } = user;
+            const { user_id, nickname, email, phone, role_id, username } = user;
 
             const { accessToken, refreshToken } = await createTokenPair(
-                { user_id, nickname, email, phone, role_id }, privateKey, publicKey
+                { user_id, nickname, email, phone, role_id, username }, privateKey, publicKey
             )
             keyStoreModel.createKeyStore(user.user_id, privateKey, publicKey, refreshToken).then((key) => {
                 res.cookie("refreshToken", refreshToken, {
@@ -89,6 +89,7 @@ class AuthController {
                         nickname: user.nickname,
                         email: user.email,
                         phone: user.phone,
+                        username: user.username,
                         role_id: user.role_id
                     }),
                     accessToken: accessToken,

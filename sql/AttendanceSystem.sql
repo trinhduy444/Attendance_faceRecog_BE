@@ -176,8 +176,7 @@ GO
 CREATE TABLE Schedule
 (
 	[course_group_id] INT NOT NULL,
-	[shift_code] VARCHAR(32) NOT NULL,
-	[classroom_code] VARCHAR(32) NOT NULL,
+	[classroomshift_id] INT NOT NULL,
 	[semester_year_id] INT NOT NULL,
 	[week_from] INT NOT NULL,
 	[week_to] INT NOT NULL,
@@ -189,10 +188,9 @@ CREATE TABLE Schedule
 	[create_time] DATETIME NULL,
 	[update_time] DATETIME NULL
 )
-ALTER TABLE Schedule ADD CONSTRAINT PK_Schedule PRIMARY KEY CLUSTERED(course_group_id, shift_code, classroom_code, week_from, week_to,week_day) ON [PRIMARY]
+ALTER TABLE Schedule ADD CONSTRAINT PK_Schedule PRIMARY KEY CLUSTERED(course_group_id, classroomshift_id, week_from, week_to,week_day) ON [PRIMARY]
 ALTER TABLE Schedule ADD CONSTRAINT FK_Schedule_CourseGroup FOREIGN KEY(course_group_id) REFERENCES CourseGroup(course_group_id)
-ALTER TABLE Schedule ADD CONSTRAINT FK_Schedule_Shift FOREIGN KEY(shift_code) REFERENCES Shift(shift_code)
-ALTER TABLE Schedule ADD CONSTRAINT FK_Schedule_Classroom FOREIGN KEY(classroom_code) REFERENCES Classroom(classroom_code)
+ALTER TABLE Schedule ADD CONSTRAINT FK_Schedule_ClassroomShift FOREIGN KEY(classroomshift_id) REFERENCES ClassRoomShift(classroomshift_id)
 ALTER TABLE Schedule ADD CONSTRAINT FK_Schedule_SemesterYear FOREIGN KEY(semester_year_id) REFERENCES SemesterYear(semester_year_id)
 Go
 
@@ -358,6 +356,11 @@ CREATE TABLE SemesterYear
 )
 ALTER TABLE SemesterYear ADD CONSTRAINT PK_SemesterYear PRIMARY KEY CLUSTERED(semester_year_id) ON [PRIMARY]
 
+-- Update 8-8 CHẠY LẠI SCHEDULE TABLE
+alter table SemesterYear add week_from int, week_to int, exclude_week varchar(32)
+
+alter table Schedule add total_shift int
+
 GO
 CREATE TABLE SysUserFace
 (
@@ -371,3 +374,4 @@ CREATE TABLE SysUserFace
 	[update_time] DATETIME NULL
 )
 ALTER TABLE SysUserFace ADD CONSTRAINT PK_SysUserFace PRIMARY KEY CLUSTERED(user_face_id) ON [PRIMARY]
+

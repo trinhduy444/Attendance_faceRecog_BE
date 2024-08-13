@@ -21,4 +21,6 @@ router.get('/faces/:userId', authMiddleware.isLogin, userController.getUserFaces
 
 // router.delete('/', null);
 
+router.post('/getImageAndNicknameByUsername',authMiddleware.isLogin, userController.getImageAndNicknameByUsername)
+router.post('/checkExistUser', authMiddleware.isLogin, userController.checkExistUser)
 module.exports = router;

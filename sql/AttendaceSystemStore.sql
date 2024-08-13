@@ -492,9 +492,59 @@ select *
 from AllSchedules
 where student_id = 65 and status = 1
 
+
 GO
 CREATE VIEW vSysUserFace
 AS
 	SELECT a.user_face_id, a.user_id, b.username, b.nickname, a.face_image_path
 		FROM SysUserFace a JOIN SysUser b ON a.user_id = b.user_id
 GO
+-- Update 12/08 Kiem tra tinh trạng điểm danh của studen
+Go
+CREATE PROCEDURE sp_CheckAttendanceStatus
+	@course_group_id INT,
+	@student_id INT
+AS
+BEGIN
+	DECLARE @total_absent DECIMAL(19, 5);
+	DECLARE @total_shift INT;
+	DECLARE @absence_ratio DECIMAL(19, 5);
+	DECLARE @type NVARCHAR(10);
+
+	-- Lấy giá trị total_absent từ bảng CourseGroupStudentList
+	SELECT @total_absent = c.total_absent
+	FROM CourseGroupStudentList c
+	WHERE c.course_group_id = @course_group_id AND c.student_id = @student_id;
+
+	-- Lấy tổng số buổi học từ bảng Schedule
+	SELECT @total_shift = s.total_shift
+	FROM Schedule s
+	WHERE s.course_group_id = @course_group_id;
+
+	-- Tính tỷ lệ vắng mặt
+	SET @absence_ratio = @total_absent / @total_shift;
+
+	-- Xác định loại cảnh báo
+	IF @absence_ratio > 0.2
+        SET @type = 'ban';
+    ELSE IF @absence_ratio > 0.1
+        SET @type = 'warning';
+    ELSE
+        SET @type = 'no';
+
+	-- Trả về thông tin cần thiết từ ActiveCourseGroups và sysUser
+	SELECT
+		@type AS type,
+		ac.course_code,
+		ac.group_code,
+		ac.course_name,
+		su.email AS student_email,
+		su.nickname as student_name
+	FROM
+		ActiveCourseGroups ac
+		INNER JOIN
+		sysUser su ON su.user_id = @student_id
+	WHERE 
+        ac.course_group_id = @course_group_id;
+END;
+--EXEC sp_CheckAttendanceStatus @course_group_id = 143, @student_id = 65;

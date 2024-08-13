@@ -7,3 +7,21 @@ Content-Type: application/json
     "username": "52000655",
     "password": "123456"
 }
+
+### Login admin
+POST {{url}}/auth/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "123Admin456"
+}
+
+### Check status student in CG
+POST {{url}}/attendances/checkStatusStudentInCourseGroup
+Content-Type: application/json
+Authorization: 'Brearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJuaWNrbmFtZSI6IlF14bqjbiB0cuG7iyB2acOqbiIsImVtYWlsIjoiYWRtaW5AZ21haWwuY29tIiwicGhvbmUiOiIwMTIzNDU2Nzg5Iiwicm9sZV9pZCI6MSwidXNlcm5hbWUiOiJhZG1pbiIsImlhdCI6MTcyMzQ1ODk3MiwiZXhwIjoxNzIzNTQ1MzcyfQ.fIqS6FqLWGKqhPN5lMNG5hUboPglN151IxZd7bgRfv0'
+{
+    "courseGroupId":143, 
+    "studentId":65
+}

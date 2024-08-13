@@ -1,9 +1,11 @@
+require('dotenv').config();
+
 const cloudinary = require('cloudinary').v2;
 
 cloudinary.config({
-    cloud_name: 'diges8hpb',
-    api_key: '863579243165465',
-    api_secret: '4EDP-poLXWBWOVtTCZCv5EZ_v8k' 
+    cloud_name: process.env.CLOUDINARY_CLOUDNAME || 'diges8hpb',
+    api_key: process.env.CLOUDINARY_APIKEY || '863579243165465',
+    api_secret: process.env.CLOUDINARY_APISECRET || '4EDP-poLXWBWOVtTCZCv5EZ_v8k' 
 });
 const CLOUDINARY_FOLDER = 'Attendance_System';
 const CLOUDINARY_FOLDER2 = 'Attendance_Data';
