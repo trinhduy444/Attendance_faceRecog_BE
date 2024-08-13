@@ -360,7 +360,7 @@ ALTER TABLE SemesterYear ADD CONSTRAINT PK_SemesterYear PRIMARY KEY CLUSTERED(se
 alter table SemesterYear add week_from int, week_to int, exclude_week varchar(32)
 
 alter table Schedule add total_shift int
-
+-- Cua Phuoc 12/08
 GO
 CREATE TABLE SysUserFace
 (

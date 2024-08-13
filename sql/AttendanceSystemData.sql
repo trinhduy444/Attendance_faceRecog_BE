@@ -200,7 +200,7 @@ update SemesterYear set week_from =1,week_to= 22 where semester = 1
 update SemesterYear set week_from =28,week_to= 40 where semester = 2
 update SemesterYear set week_from =43,week_to= 52 where semester = 3
 GO
-
+-- update 13/08
 INSERT INTO SysUserFace(user_id, face_image_path, status, creator_id, updater_id, create_time, update_time) VALUES
 	(900, 'https://res.cloudinary.com/diges8hpb/image/upload/v1722777332/Attendance_System/52000900_attendanceSystem_0123456789.jpg', 1, 1, 1, '2024-08-11 19:29:19.457', '2024-08-11 19:29:19.457'),
 	(900, 'https://res.cloudinary.com/diges8hpb/image/upload/v1723378237/52000900_attendanceSystem_0123456789_02_vefz5z.jpg', 1, 1, 1, '2024-08-11 19:29:19.457', '2024-08-11 19:29:19.457')
