@@ -280,7 +280,7 @@ class CourseModel {
         try {
             const values = await Promise.all(courseGroups.map(async (cg) => {
                 const { 'Mã môn': course_code, 'Mã nhóm': group_code, 'Sĩ số': total_student_qty, 'Thứ': week_day, 'Tuần bắt đầu': week_from,
-                    'Tuần kết thúc': week_to, 'Tuần nghỉ': exclude_week, 'Ca học': shift,'Tổng ca':total_shift,
+                    'Tuần kết thúc': week_to, 'Tuần nghỉ': exclude_week, 'Ca học': shift, 'Tổng ca': total_shift,
                     'Phòng': classroom_code, 'Học kỳ': semester, 'Năm học': year, 'MSGV': MSGV } = cg;
 
 
@@ -402,10 +402,20 @@ class CourseModel {
             })
         })
     }
-    getCourseGroupByStudentId(student_id) {
+    getCourseGroupByStudentId(student_id, semester_year_id,course_group_id) {
         return new Promise((resolve, reject) => {
-            const q = 'EXEC GetCourseGroupInfoByStudentId @student_id = ?'
-            const params = [student_id]
+            // const q = 'EXEC GetCourseGroupInfoByStudentId @student_id = ?'
+            let q = 'SELECT * FROM ViewCourseGroupInfoByStudentId WHERE student_id = ?'
+            let params = [student_id]
+            
+            if (semester_year_id) {
+                q += ` and semester_year_id = ?`;
+                params.push(semester_year_id);
+            }
+            if(course_group_id){
+                q += ` and course_group_id = ?`;
+                params.push(course_group_id);
+            }
             db.query(q, params, (err, result) => {
                 if (err) {
                     reject(err)

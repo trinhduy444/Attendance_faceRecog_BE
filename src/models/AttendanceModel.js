@@ -65,26 +65,67 @@ class AttendanceRawDataModel {
             });
         });
     }
+    // check student đã điểm danh
+    checkStudentAttendance(studentId, courseGroupId, attendType) {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT 1 as exist
+                FROM AttendanceRawData a
+                WHERE a.course_group_id = ? 
+                  AND a.student_id = ? 
+                  AND attend_date = CAST(GETDATE() AS DATE) 
+                  AND attend_type = ?`;
+
+            const params = [courseGroupId, studentId, attendType];
+
+            db.query(query, params, (err, result) => {
+                if (err) return reject(err);
+                if (result.length > 0) {
+                    return resolve(true);  // Bản ghi đã tồn tại
+                }else{
+
+                    return resolve(false); // Bản ghi chưa tồn tại
+                }   
+            });
+        });
+    }
+
 
     // Add new Attendance Raw Data with server date time
     addAttendanceRawDataServerDateTime(attendanceRawData, userId) {
         let { studentId, courseGroupId, attendType, attendImagePath } = attendanceRawData;
-
         studentId = sql.Int(studentId);
         courseGroupId = sql.Int(courseGroupId);
         attendType = sql.TinyInt(attendType);
         attendImagePath = sql.VarChar(attendImagePath);
         userId = sql.Int(userId);
-
+        console.log("entry")
         return new Promise((resolve, reject) => {
-            const q = 'insert into AttendanceRawData (student_id, course_group_id, attend_date, attend_type, attend_time, attend_image_path, creator_id, create_time) select ?, ?, getdate(), ?, convert(varchar(5), getdate(), 108), ?, ?, getdate()';
-            const params = [studentId, courseGroupId, attendType, attendImagePath, userId];
-            db.query(q, params, (err, rows) => {
-                if (err) reject(err);
-                resolve();
-            });
+            // Gọi hàm kiểm tra trước khi thêm mới dữ liệu
+            this.checkStudentAttendance(studentId, courseGroupId, attendType)
+                .then(exists => {
+                    if (exists) {
+                        return resolve('Student already checked in.');
+                    }
+                    else {
+                        const insertQuery = `
+                        INSERT INTO AttendanceRawData 
+                        (student_id, course_group_id, attend_date, attend_type, attend_time, attend_image_path, creator_id, create_time) 
+                        SELECT ?, ?, GETDATE(), ?, CONVERT(VARCHAR(5), GETDATE(), 108), ?, ?, GETDATE()`;
+                        const insertParams = [studentId, courseGroupId, attendType, attendImagePath, userId];
+
+                        db.query(insertQuery, insertParams, (err, rows) => {
+                            if (err) return reject(err);
+                            resolve();
+                        });
+                    }
+                    // Nếu chưa điểm danh, thực hiện thêm mới dữ liệu
+
+                })
+                .catch(err => reject(err));
         });
     }
+
 
     /*
     // delete AttendanceRawData
@@ -128,6 +169,7 @@ class AttendanceRawDataModel {
     getAttendances(studentId, courseGroupId, attendDate) {
 
         // Convert string to date
+        console.log(studentId, courseGroupId, attendDate)
         attendDate = attendDate == null ? null : new Date(attendDate);
 
         studentId = sql.Int(studentId);
@@ -137,7 +179,6 @@ class AttendanceRawDataModel {
         return new Promise((resolve, reject) => {
             const q = 'select * from vattendance where ? in (student_id, 0) and ? in (course_group_id, 0) and (? is null or attend_date = ?)';
             const params = [studentId, courseGroupId, attendDate, attendDate];
-
             db.query(q, params, (err, rows) => {
                 if (err) {
                     reject(err);
@@ -268,13 +309,13 @@ class AttendanceRawDataModel {
             console.log('here')
             title = `Cảnh báo sinh viên ${result?.student_name} nghỉ học nhiều`;
             content = warningMailCG(result)
-                await sendMail(title, content, result.student_email)
+            await sendMail(title, content, result.student_email)
             return true;
         }
         else if (result.type == 'ban') {
             title = `CẤM THI. Cảnh báo sinh viên ${result?.student_name}`;
             content = banMailCG(result)
-                await sendMail(title, content, result.student_email)
+            await sendMail(title, content, result.student_email)
             return true;
         }
         return false;

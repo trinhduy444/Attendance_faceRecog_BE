@@ -75,7 +75,24 @@ class UserController {
         })
 
     }
-    getSomeInfo(req, res) {
+    getSomeInfo = async (req, res) => {
+        const user_id = req.user.user_id;
+        if (!user_id) throw new UnauthorizedError("Pls login!")
+        try {
+            const user = await userModel.getSomeInfo(user_id);
+            
+            if(user.length > 0){
+                return res.status(200).json({ status: 200, message: "Get User Info Successfully", metadata: user[0] })
+
+            }else{
+                return res.status(200).json({ status: 404, message: "Get User Info Fail" })
+
+            }
+        } catch (err) {
+            console.error(err);
+            return res.status(400).json({ status: 500, message: err.message });
+
+        }
 
     }
     getImageAndNicknameByUsername = async (req, res) => {
@@ -111,21 +128,21 @@ class UserController {
         userId = userId || 0;
 
         userModel.getUserFaces(userId)
-        .then((faces) => {
-            return res.status(200).json({
-                'status': 200,
-                'message': 'Receive user faces success.',
-                'data': {
-                    'faces': faces
-                }
+            .then((faces) => {
+                return res.status(200).json({
+                    'status': 200,
+                    'message': 'Receive user faces success.',
+                    'data': {
+                        'faces': faces
+                    }
+                });
+            }).catch((err) => {
+                return res.status(500).json({
+                    'status': 500,
+                    'message': err,
+                    'data': {}
+                });
             });
-        }).catch((err) => {
-            return res.status(500).json({
-                'status': 500,
-                'message': err,
-                'data': {}
-            });
-        });
     }
 }
 

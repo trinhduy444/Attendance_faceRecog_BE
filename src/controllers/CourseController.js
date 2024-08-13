@@ -240,11 +240,13 @@ class CourseController {
         // }
     };
     getAllCoursesGroupByStudentId = async (req, res) => {
-
+        const { semester_year_id } = req.query;
+        const {course_group_id} = req.body;
+        console.log(course_group_id);
         const student_id = req.user.user_id;
         if (!student_id) throw new ForbiddenError("Pls login required")
         try {
-            const data = await courseModel.getCourseGroupByStudentId(student_id);
+            const data = await courseModel.getCourseGroupByStudentId(student_id,semester_year_id,course_group_id);
             return res.status(200).json({
                 status: 200,
                 message: "Get Course Group Successfully",
@@ -294,6 +296,7 @@ class CourseController {
     checkInCourseGroup = async (req, res) => {
         const user_id = req.user.user_id;
         const { course_group_id } = req.params;
+        console.log(`Course Group ${course_group_id}`);
         if (!user_id) throw new ForbiddenError("Pls Login");
         try {
             const result = await courseModel.checkInCourseGroup(course_group_id, user_id);

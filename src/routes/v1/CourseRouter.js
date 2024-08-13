@@ -31,8 +31,10 @@ router.get('/groups/students/:courseGroupId', authMiddleware.isLogin, courseCont
 // Create Course Group
 router.post('/createCourseGroup', authMiddleware.isLogin, courseController.createCourseGroup)
 
+// Get All Course Group Teacher
 router.post('/getCourseGroupByTeacher', authMiddleware.isLogin, courseController.getAllCoursesGroupByTeacherId)
 
+// Get All CourseGroup Student
 router.post('/getCourseGroupByStudent', authMiddleware.isLogin, courseController.getAllCoursesGroupByStudentId)
 
 router.get('/getInfoCourseGroup/:course_group_id', courseController.getInfoCourseGroup)
@@ -49,4 +51,7 @@ router.post('/createCourseGroups',authMiddleware.isLogin, authMiddleware.isAdmin
 
 // Create Mutltii Student in Course Group
 router.post('/createStudentLists', authMiddleware.isLogin, authMiddleware.isAdmin, courseController.createStudentList)
+
+// Get Coursse Groups Details
+
 module.exports = router;

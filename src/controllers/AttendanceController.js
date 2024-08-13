@@ -69,6 +69,7 @@ class AttendanceController {
                     'data': {}
                 });
             }).catch((err) => {
+                console.error(err);
                 return res.status(500).json({
                     'status': 500,
                     'message': err,
@@ -100,6 +101,7 @@ class AttendanceController {
 
     getAttendance(req, res) {
         let { studentId, courseGroupId, attendDate } = req.query;
+        console.log( 'control',{ studentId, courseGroupId, attendDate })
         studentId = studentId || 0;
         courseGroupId = courseGroupId || 0;
         attendDate = attendDate || null;

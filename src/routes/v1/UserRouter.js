@@ -23,4 +23,6 @@ router.get('/faces/:userId', authMiddleware.isLogin, userController.getUserFaces
 
 router.post('/getImageAndNicknameByUsername',authMiddleware.isLogin, userController.getImageAndNicknameByUsername)
 router.post('/checkExistUser', authMiddleware.isLogin, userController.checkExistUser)
+
+router.post('/getSomeinfo', authMiddleware.isLogin, userController.getSomeInfo)
 module.exports = router;

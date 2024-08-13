@@ -310,3 +310,34 @@ AS
 	SELECT a.user_face_id, a.user_id, b.username, b.nickname, a.face_image_path
 		FROM SysUserFace a JOIN SysUser b ON a.user_id = b.user_id
 GO
+
+-- 13/08 view All Course Groups Student
+
+CREATE VIEW ViewCourseGroupInfoByStudentId
+AS
+SELECT
+    cg.course_group_id,
+    cg.group_code,
+	cg.course_code,
+	cls.shift_code,
+    cls.classroom_code,
+	cgsl.student_id,
+	cgsl.total_absent,
+	cgsl.ban_yn,
+	cgsl.status,
+	sh.week_from,
+	sh.week_to,
+	sh.week_day,
+    su.nickname,
+    su.avatar_path,
+    c.course_name,
+    cg.semester_year_id
+FROM
+    CourseGroupStudentList cgsl
+    INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
+	INNER JOIN Schedule sh ON cgsl.course_group_id = sh.course_group_id
+    INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
+    INNER JOIN sysUser su ON cg.teacher_id = su.user_id
+    INNER JOIN Course c ON cg.course_code = c.course_code;
+Go
+--SELECT * FROM ViewCourseGroupInfoByStudentId WHERE student_id = 65 and semester_year_id = 6
