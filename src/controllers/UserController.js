@@ -105,6 +105,28 @@ class UserController {
         }
 
     }
+
+    getUserFaces(req, res) {
+        let { userId } = req.params;
+        userId = userId || 0;
+
+        userModel.getUserFaces(userId)
+        .then((faces) => {
+            return res.status(200).json({
+                'status': 200,
+                'message': 'Receive user faces success.',
+                'data': {
+                    'faces': faces
+                }
+            });
+        }).catch((err) => {
+            return res.status(500).json({
+                'status': 500,
+                'message': err,
+                'data': {}
+            });
+        });
+    }
 }
 
 module.exports = new UserController;

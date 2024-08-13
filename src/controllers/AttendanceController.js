@@ -1,6 +1,8 @@
 const attendanceModel = require('../models/AttendanceModel');
-const { cloudinary, CLOUDINARY_FOLDER2 } = require('../config/CloudinaryConfig');
+const userModel = require('../models/UserModel');
 const { ForbiddenError, BadRequestError } = require('../core/ErrorResponse');
+const { cloudinary, CLOUDINARY_FOLDER2 } = require('../config/CloudinaryConfig');
+const streamifier = require('streamifier');
 class AttendanceController {
     getAttendanceRawData(req, res) {
         let { studentId, courseGroupId, attendDate, attendType } = req.query;
@@ -36,6 +38,30 @@ class AttendanceController {
 
         const AttendanceRawData = { studentId, courseGroupId, attendDate, attendType, attendTime, attendImagePath };
         attendanceModel.addAttendanceRawData(AttendanceRawData, req.user.user_id)
+            .then(() => {
+                return res.status(200).json({
+                    'status': 201,
+                    'message': 'Add Attendance Raw Data success.',
+                    'data': {}
+                });
+            }).catch((err) => {
+                return res.status(500).json({
+                    'status': 500,
+                    'message': err,
+                    'data': {}
+                });
+            });
+    }
+
+    postAttendanceRawDataServerDateTime(req, res) {
+        let { studentId, courseGroupId, attendType, attendImagePath } = req.body;
+        studentId = studentId || 0;
+        courseGroupId = courseGroupId || 0;
+        attendType = attendType || 0;
+        attendImagePath = attendImagePath || '';
+
+        const AttendanceRawData = { studentId, courseGroupId, attendType, attendImagePath };
+        attendanceModel.addAttendanceRawDataServerDateTime(AttendanceRawData, req.user.user_id)
             .then(() => {
                 return res.status(200).json({
                     'status': 201,
@@ -192,7 +218,7 @@ class AttendanceController {
     }
     uploadImage = async (req, res) => {
         try {
-            const { user_id, course_group_id, date, type } = req.body.user_id;
+            const { user_id, course_group_id, date, type } = req.body;
             if (!user_id) throw new ForbiddenError('Please provide a user');
 
             if (!req.file) {

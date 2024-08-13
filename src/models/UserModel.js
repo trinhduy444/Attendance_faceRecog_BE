@@ -168,6 +168,23 @@ class UserModel {
         });
     }
 
+    // Get user faces
+    getUserFaces(userId) {
+        userId = sql.Int(userId);
+
+        return new Promise((resolve, reject) => {
+            const q = 'select a.user_face_id, a.user_id, a.username, a.nickname, a.face_image_path from vSysUserFace a where a.user_id = ?';
+            const params = [userId];
+
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
 
     // Get all teachers
     getAllTeachers() {
@@ -183,6 +200,7 @@ class UserModel {
             });
         });
     }
+    
     getAllTeachersByFaculty(faculty_id) {
         return new Promise((resolve, reject) => {
             let q = 'select user_id, email, username, nickname from sysuser where role_id = 2 and faculty_id = ?';
@@ -294,6 +312,7 @@ class UserModel {
             }
         });
     }
+
     createTeachers = async (teachers, creatorId) => {
 
         return new Promise(async (resolve, reject) => {

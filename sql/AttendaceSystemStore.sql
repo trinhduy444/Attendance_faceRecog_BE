@@ -492,6 +492,13 @@ select *
 from AllSchedules
 where student_id = 65 and status = 1
 
+
+GO
+CREATE VIEW vSysUserFace
+AS
+	SELECT a.user_face_id, a.user_id, b.username, b.nickname, a.face_image_path
+		FROM SysUserFace a JOIN SysUser b ON a.user_id = b.user_id
+GO
 -- Update 12/08 Kiem tra tinh trạng điểm danh của studen
 Go
 CREATE PROCEDURE sp_CheckAttendanceStatus

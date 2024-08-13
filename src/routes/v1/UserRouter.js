@@ -12,6 +12,9 @@ router.get('/:userId', userController.getUserById);
 
 router.post('/profile', authMiddleware.isLogin, userController.getProfile)
 
+// Get user face list
+router.get('/faces/:userId', authMiddleware.isLogin, userController.getUserFaces);
+
 // router.post('/', null);
 
 // router.put('/', null);

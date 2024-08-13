@@ -134,7 +134,7 @@ INSERT INTO SysUser(email, username, password, nickname, phone, avatar_path, fac
 -- Dữ liệu người dùng ban đầu tạo để test.
 SET IDENTITY_INSERT SysUser ON
 INSERT INTO SysUser(user_id, email, username, password, nickname, phone, avatar_path, face_image_path, role_id, status, creator_id, updater_id, create_time, update_time) VALUES
-	(899, 'tranvana@gmail.com', 'admin', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Trần Văn A', '0123456789', '', '', 2, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
+	(899, 'tranvana@gmail.com', 'tranvana', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Trần Văn A', '0123456789', '', '', 2, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
 	(900, '52000900@gmail.com', '52000900', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Nguyễn Ðức Quyền', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
 	(901, '52000901@gmail.com', '52000901', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Mã Công Hoán', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
 	(902, '52000902@gmail.com', '52000902', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Hoàng Chiêu Phong', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
@@ -182,13 +182,16 @@ INSERT INTO AttendanceRawData(student_id, course_group_id, attend_date, attend_t
 GO
 
 -- Dữ liệu update thêm học kỳ
-insert into TernYear(tern_year_name,tern,year,status,creator_id,create_time) 
-values(N'Học kỳ 1 năm học 2023',1,2023,1,1,getDate()),
-(N'Học kỳ 2 năm học 2023',2,2023,1,1,getDate()),
-(N'Học kỳ 3 năm học 2023',3,2023,1,1,getDate()),
-(N'Học kỳ 1 năm học 2024',1,2024,1,1,getDate()),
-(N'Học kỳ 2 năm học 2024',2,2024,1,1,getDate()),
-(N'Học kỳ 3 năm học 2024',3,2024,1,1,getDate())
+SET IDENTITY_INSERT SemesterYear ON
+INSERT INTO SemesterYear(semester_year_id, semester_year_name, semester, week_from, week_to, exclude_week, year, status, creator_id, create_time) VALUES
+	(1, N'Học kỳ 1 năm học 2023', 1, 1, 22, '', 2023, 1, 1, GETDATE()),
+	(2, N'Học kỳ 2 năm học 2023', 2, 28, 40, '', 2023, 1, 1, GETDATE()),
+	(3, N'Học kỳ 3 năm học 2023', 3, 43, 52, '', 2023, 1, 1, GETDATE()),
+	(4, N'Học kỳ 1 năm học 2024', 1, 1, 22, '', 2024, 1, 1, GETDATE()),
+	(5, N'Học kỳ 2 năm học 2024', 2, 28, 40, '', 2024, 1, 1, GETDATE()),
+	(6, N'Học kỳ 3 năm học 2024', 3, 43, 52, '', 2024, 1, 1, GETDATE())
+SET IDENTITY_INSERT SemesterYear OFF
+GO
 
 update CourseGroup set semester_year_id = 1
 update CourseGroup set semester_year_id = 2 where course_group_id = 40
@@ -196,3 +199,9 @@ update CourseGroup set semester_year_id = 2 where course_group_id = 40
 update SemesterYear set week_from =1,week_to= 22 where semester = 1
 update SemesterYear set week_from =28,week_to= 40 where semester = 2
 update SemesterYear set week_from =43,week_to= 52 where semester = 3
+GO
+
+INSERT INTO SysUserFace(user_id, face_image_path, status, creator_id, updater_id, create_time, update_time) VALUES
+	(900, 'https://res.cloudinary.com/diges8hpb/image/upload/v1722777332/Attendance_System/52000900_attendanceSystem_0123456789.jpg', 1, 1, 1, '2024-08-11 19:29:19.457', '2024-08-11 19:29:19.457'),
+	(900, 'https://res.cloudinary.com/diges8hpb/image/upload/v1723378237/52000900_attendanceSystem_0123456789_02_vefz5z.jpg', 1, 1, 1, '2024-08-11 19:29:19.457', '2024-08-11 19:29:19.457')
+GO

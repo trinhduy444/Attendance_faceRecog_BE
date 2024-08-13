@@ -283,3 +283,30 @@ BEGIN
 	DROP TABLE #student, #tmp, #data
 END
 GO
+
+-- 12/08/2024 Update recog multi face
+GO
+CREATE TABLE SysUserFace
+(
+	[user_face_id] INT IDENTITY(1, 1) NOT NULL,
+	[user_id] INT NOT NULL,
+	[face_image_path] VARCHAR(128) NULL,
+	[status] BIT NULL,
+	[creator_id] INT NULL,
+	[updater_id] INT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL
+)
+ALTER TABLE SysUserFace ADD CONSTRAINT PK_SysUserFace PRIMARY KEY CLUSTERED(user_face_id) ON [PRIMARY]
+
+GO
+INSERT INTO SysUserFace(user_id, face_image_path, status, creator_id, updater_id, create_time, update_time) VALUES
+	(900, 'https://res.cloudinary.com/diges8hpb/image/upload/v1722777332/Attendance_System/52000900_attendanceSystem_0123456789.jpg', 1, 1, 1, '2024-08-11 19:29:19.457', '2024-08-11 19:29:19.457'),
+	(900, 'https://res.cloudinary.com/diges8hpb/image/upload/v1723378237/52000900_attendanceSystem_0123456789_02_vefz5z.jpg', 1, 1, 1, '2024-08-11 19:29:19.457', '2024-08-11 19:29:19.457')
+GO
+
+CREATE VIEW vSysUserFace
+AS
+	SELECT a.user_face_id, a.user_id, b.username, b.nickname, a.face_image_path
+		FROM SysUserFace a JOIN SysUser b ON a.user_id = b.user_id
+GO

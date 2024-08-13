@@ -10,6 +10,9 @@ router.get('/raw', authMiddleware.isLogin, attendanceController.getAttendanceRaw
 // Add attendance raw data
 router.post('/raw', authMiddleware.isLogin, authMiddleware.isTeacherOrAdmin, attendanceController.postAttendanceRawData);
 
+// Add attendance raw data with server date time
+router.post('/rawserverdatetime', authMiddleware.isLogin, authMiddleware.isTeacherOrAdmin, attendanceController.postAttendanceRawDataServerDateTime);
+
 // Update attendance from raw data
 router.post('/pulldata', authMiddleware.isLogin, authMiddleware.isTeacherOrAdmin, attendanceController.updateAttendanceFromRawData);
 
