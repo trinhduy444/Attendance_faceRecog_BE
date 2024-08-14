@@ -46,7 +46,7 @@ class AttendanceRawDataModel {
     addAttendanceRawData(attendanceRawData, userId) {
         let { studentId, courseGroupId, attendDate, attendType, attendTime, attendImagePath } = attendanceRawData;
         // Convert string to date
-        attendDate = attendDate == null ? null : new Date(attendDate + 'Z');
+        attendDate = attendDate == null ? null : new Date(attendDate);
 
         studentId = sql.Int(studentId);
         courseGroupId = sql.Int(courseGroupId);
@@ -71,7 +71,7 @@ class AttendanceRawDataModel {
         let { studentId, courseGroupId, attendDate, attendType, attendImagePath } = attendanceRawData;
         
         // Convert string to date
-        attendDate = attendDate == null ? null : new Date(attendDate + 'Z');
+        attendDate = attendDate == null ? null : new Date(attendDate);
 
         studentId = sql.Int(studentId);
         courseGroupId = sql.Int(courseGroupId);
@@ -167,17 +167,18 @@ class AttendanceRawDataModel {
     */
 
     // Update Attendance from raw data
-    updateAttendanceFromRawData(courseGroupId, attendDate, userId) {
+    updateAttendanceFromRawData(courseGroupId, attendDate, userId, forceUpdate) {
         // Convert string to date
-        attendDate = attendDate == null ? null : new Date(attendDate + 'Z');
+        attendDate = attendDate == null ? null : new Date(attendDate);
 
         courseGroupId = sql.Int(courseGroupId);
         attendDate = sql.Date(attendDate);
         userId = sql.Int(userId);
+        forceUpdate = sql.Bit(forceUpdate);
 
         return new Promise((resolve, reject) => {
-            const q = "exec UpdateAttendanceFromRawData ?, ?, ?";
-            const params = [courseGroupId, attendDate, userId];
+            const q = "exec UpdateAttendanceFromRawData ?, ?, ?, ?";
+            const params = [courseGroupId, attendDate, userId, forceUpdate];
             db.query(q, params, (err, rows, output) => {
                 if (err) reject(err);
                 resolve();
@@ -187,10 +188,9 @@ class AttendanceRawDataModel {
 
     // Get list of attendance
     getAttendances(studentId, courseGroupId, attendDate) {
-
         // Convert string to date
         console.log(studentId, courseGroupId, attendDate)
-        attendDate = attendDate == null ? null : new Date(attendDate + 'Z');
+        attendDate = attendDate == null ? null : new Date(attendDate);
 
         studentId = sql.Int(studentId);
         courseGroupId = sql.Int(courseGroupId);
@@ -215,7 +215,7 @@ class AttendanceRawDataModel {
         let { attendYn, enterTime, note } = attendance;
 
         // Convert string to date
-        attendDate = attendDate == null ? null : new Date(attendDate + 'Z');
+        attendDate = attendDate == null ? null : new Date(attendDate);
 
         studentId = sql.Int(studentId);
         courseGroupId = sql.Int(courseGroupId);
@@ -242,13 +242,13 @@ class AttendanceRawDataModel {
         let { studentId, courseGroupId, attendDate } = key;
 
         // Convert string to date
-        attendDate = attendDate == null ? null : new Date(attendDate + 'Z');
+        attendDate = attendDate == null ? null : new Date(attendDate);
 
         studentId = sql.Int(studentId);
         courseGroupId = sql.Int(courseGroupId);
         attendDate = sql.Date(attendDate);
 
-        const q = 'delete attendance where student_id = ? and course_group_id = ? and attend_date = ?';
+        const q = 'delete attendance where ? in (student_id, -1) and course_group_id = ? and attend_date = ?';
         const params = [studentId, courseGroupId, attendDate];
 
         return new Promise((resolve, reject) => {
@@ -262,8 +262,8 @@ class AttendanceRawDataModel {
     // Get attendance summary report
     getAttendanceSummaryReport(attendDate1, attendDate2, studentId, courseGroupId) {
         // Convert string to date
-        attendDate1 = attendDate1 == null ? null : new Date(attendDate1 + 'Z');
-        attendDate2 = attendDate2 == null ? null : new Date(attendDate2 + 'Z');
+        attendDate1 = attendDate1 == null ? null : new Date(attendDate1);
+        attendDate2 = attendDate2 == null ? null : new Date(attendDate2);
 
         attendDate1 = sql.Date(attendDate1);
         attendDate2 = sql.Date(attendDate2);

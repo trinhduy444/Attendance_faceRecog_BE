@@ -87,11 +87,12 @@ class AttendanceController {
     }
 
     updateAttendanceFromRawData(req, res) {
-        let { courseGroupId, attendDate } = req.body;
+        let { courseGroupId, attendDate, forceUpdate } = req.body;
         courseGroupId = courseGroupId || 0;
         attendDate = attendDate || null;
+        forceUpdate = forceUpdate || false;
 
-        attendanceModel.updateAttendanceFromRawData(courseGroupId, attendDate, req.user.user_id)
+        attendanceModel.updateAttendanceFromRawData(courseGroupId, attendDate, req.user.user_id, forceUpdate)
         .then(() => {
             return res.status(200).json({
                 'status': 200,
