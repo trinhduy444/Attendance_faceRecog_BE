@@ -28,7 +28,7 @@ class NotifyModel {
             let params = [];
 
             if (type === 'users') {
-                console.log("vô");
+                // console.log("vô");
                 switch (valueType) {
                     case 'allUsers':
                         q = 'SELECT user_id FROM sysUser';

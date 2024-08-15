@@ -18,6 +18,8 @@ router.post('/pulldata', authMiddleware.isLogin, authMiddleware.isTeacherOrAdmin
 
 // Get attendance data
 router.get('/', authMiddleware.isLogin, attendanceController.getAttendance);
+// Get Attendance Detail
+router.get('/detail', authMiddleware.isLogin, attendanceController.getAttendanceDetail);
 
 // Edit attendance data
 router.put('/', authMiddleware.isLogin, authMiddleware.isTeacherOrAdmin, attendanceController.putAttendance);
@@ -34,6 +36,7 @@ router.get('/report/detail', authMiddleware.isLogin, attendanceController.getAtt
 // Upload Image
 router.post('/uploadimage', authMiddleware.isLogin,upload.single('image'), attendanceController.uploadImage);
 
+//Check student in CG
 router.post('/checkStatusStudentInCourseGroup', authMiddleware.isLogin, attendanceController.checkStatusStudentInCourseGroup)
 
 module.exports = router;

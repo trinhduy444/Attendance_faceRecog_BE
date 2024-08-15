@@ -4,18 +4,17 @@ const nodemailer = require('nodemailer');
 const transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {
-        user: 'thawponsgatcant@gmail.com',
-        pass: 'zszm qwfi qlkd xace'
+        user: process.env.NODEMAILER_USER || 'thawponsgatcant@gmail.com',
+        pass: process.env.NODEMAILER_PASS || 'zszm qwfi qlkd xace'
     }
 });
 
-// Hàm sendMail
 const sendMail = async (title, content, emailReceived) => {
     try {
         const mailOptions = {
-            from: 'thawponsgatcant@gmail.com', // Địa chỉ email của bạn
+            from: process.env.NODEMAILER_USER || 'thawponsgatcant@gmail.com',
             to: Array.isArray(emailReceived) ? emailReceived.join(', ') : emailReceived, // gửi nhiều người hoặc 1 người
-            subject: title, // Tiêu đề email
+            subject: title,
             html: `
                 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
                     <h2>${title}</h2>

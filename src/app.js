@@ -9,10 +9,11 @@ const express = require('express');
 const app = express();
 const cors = require("cors");
 const morgan = require('morgan');
-const {default: helmet} = require('helmet');
+const { default: helmet } = require('helmet');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
-const {errorHandler} = require('./core/ErrorResponse')
+
+const { errorHandler } = require('./core/ErrorResponse')
 
 // Init Middleware
 app.use(express.json());
@@ -29,18 +30,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(helmet());
 
-// const initRedist = require('./config/RedisConfig');
-// initRedist.initRedist()
-// const client = initRedist.getRedist().instanceConnect;
-
-// client.on('connect', () => {
-//     console.log('Redis client connected');
-// });
-
-// client.on('error', (err) => {
-//     console.error('Redis client error', err);
-// });
-
+// Redis init
+const { initRedis } = require('./config/RedisConfig');
+initRedis();
 
 // Init API Router
 const apiRouter = require('./routes/ApiRouter');

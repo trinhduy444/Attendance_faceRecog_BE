@@ -3,6 +3,8 @@ require('dotenv').config();
 const sql = require('msnodesqlv8');
 const db = require('../utils/SqlConnection');
 const bcrypt = require('bcrypt');
+const { getRedis } = require('../config/RedisConfig');
+
 const facultyList = {
     "Công Nghệ Thông Tin": 10010,
     "Quản Trị Kinh Doanh": 10011,
@@ -120,18 +122,50 @@ class UserModel {
 
     // Get all users
     getAllUsers() {
-        return new Promise((resolve, reject) => {
-            const q = 'select user_id, email, username, nickname, phone, avatar_path, course_year, gender, faculty.faculty_name from sysuser left join faculty On SysUser.faculty_id = faculty.faculty_id where role_id = 3';
+        const cacheKey = 'allUsers';
 
-            db.query(q, (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(rows);
+        return new Promise(async (resolve, reject) => {
+            try {
+                const redisClient = getRedis();
+                const cachedData = await redisClient.get(cacheKey);
+
+                if (cachedData) {
+                    console.log('Data retrieved from Redis cache');
+                    return resolve(JSON.parse(cachedData));
                 }
-            });
-        });
-    }
+                const query = `SELECT 
+                            user_id, 
+                            email, 
+                            username, 
+                            nickname, 
+                            phone, 
+                            avatar_path, 
+                            course_year, 
+                            gender, 
+                            faculty.faculty_name 
+                           FROM sysuser 
+                           LEFT JOIN faculty 
+                           ON sysuser.faculty_id = faculty.faculty_id 
+                           WHERE role_id = 3`;
+
+                db.query(query, (err, rows) => {
+                    if (err) {
+                        return reject(err);
+                    }
+                    // Lưu kết quả vào Redis với thời gian sống (TTL) là 1 giờ (3600 giây)
+                    redisClient.set(cacheKey, JSON.stringify(rows), {
+                        EX: 3600,
+                    });
+
+                    console.log('Data retrieved from SQL and stored in Redis');
+                    resolve(rows);
+                });
+            } catch (err) {
+                console.error('Error while retrieving data: ', err);
+                reject(err);
+            }
+        })
+    };
 
     // Get all users Detail
     getAllUsersDetail(faculty_id, inputFilter, type, genderFilter) {
@@ -188,19 +222,40 @@ class UserModel {
 
     // Get all teachers
     getAllTeachers() {
-        return new Promise((resolve, reject) => {
-            const q = 'select user_id, email, username, nickname, phone, avatar_path, course_year, gender, faculty.faculty_name from sysuser left join faculty On SysUser.faculty_id = faculty.faculty_id where role_id = 2';
+        const cacheKey = 'allTeachers';
 
-            db.query(q, (err, rows) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(rows);
+        return new Promise(async (resolve, reject) => {
+            try {
+                const redisClient = getRedis();
+                const cachedData = await redisClient.get(cacheKey);
+
+                if (cachedData) {
+                    console.log('Data retrieved from Redis cache');
+                    return resolve(JSON.parse(cachedData));
                 }
-            });
+                const q = 'select user_id, email, username, nickname, phone, avatar_path, course_year, gender, faculty.faculty_name from sysuser left join faculty On SysUser.faculty_id = faculty.faculty_id where role_id = 2';
+
+                db.query(q, (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        redisClient.set(cacheKey, JSON.stringify(rows), {
+                            EX: 3600,
+                        });
+
+                        console.log('Data retrieved from SQL and stored in Redis');
+                        resolve(rows);
+                    }
+                });
+
+            } catch (err) {
+                console.error('Error while retrieving data: ', err);
+                reject(err);
+            }
+
         });
     }
-    
+
     getAllTeachersByFaculty(faculty_id) {
         return new Promise((resolve, reject) => {
             let q = 'select user_id, email, username, nickname from sysuser where role_id = 2 and faculty_id = ?';
@@ -252,9 +307,21 @@ class UserModel {
         const userIds = arrUsersid.map((user) => user[0].user_id);
         return userIds;
     }
+    deleteKey(key = '') {
+        const redisClient = getRedis();
+        redisClient.del(key, (err, response) => {
+            if (err) {
+                console.error('Error deleting cache:', err);
+            } else if (response === 1) {
+                console.log(`Cache with key '${cacheKey}' was deleted`);
+            } else {
+                console.log(`Cache with key '${cacheKey}' does not exist`);
+            }
+        });
+    }
     // Create Multiple Users
     createUsers = async (users, creatorId) => {
-
+        this.deleteKey('allUsers')
         return new Promise(async (resolve, reject) => {
             if (!Array.isArray(users) || users.length === 0) {
                 return reject(new Error('Invalid users array'));
@@ -314,6 +381,7 @@ class UserModel {
     }
 
     createTeachers = async (teachers, creatorId) => {
+        this.deleteKey('allTeachers')
 
         return new Promise(async (resolve, reject) => {
             try {
@@ -427,7 +495,7 @@ class UserModel {
             });
         });
     }
-    getSomeInfo(user_id){
+    getSomeInfo(user_id) {
         return new Promise((resolve, reject) => {
             const q = 'select su.avatar_path, su.nickname, su.username, su.faculty_id,fa.faculty_name   from sysUser as su INNER JOIN Faculty as fa on su.faculty_id = fa.faculty_id where user_id = ? and status = ?';
             db.query(q, [user_id, 1], (err, rows) => {

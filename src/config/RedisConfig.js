@@ -2,40 +2,60 @@
 require('dotenv').config();
 const redis = require('redis');
 
-let client = {}, statusConnectRedis = {
+// Tạo các trạng thái kết nối Redis
+const statusConnectRedis = {
     CONNECT: 'connect',
     END: 'end',
     RECONECT: 'reconnecting',
     ERROR: 'error'
-}
-const handleEventConnection = ({
-    conectionRedis
-}) => {
-    conectionRedis.on(statusConnectRedis.CONNECT, () => {
-        console.log(`ConnectionRedis : connected`)
-    })
-    conectionRedis.on(statusConnectRedis.END, () => {
-        console.log(`ConnectionRedis : ended`)
-    })
-    conectionRedis.on(statusConnectRedis.RECONECT, () => {
-        console.log(`ConnectionRedis : reconnected`)
-    })
-    conectionRedis.on(statusConnectRedis.ERROR, (err) => {
-        console.log(`ConnectionRedis error::: ${err}`)
-    })
-}
+};
 
-const initRedist = () => {
-    const instanceRedis = redis.createClient();
-    client.instanceConnect = instanceRedis
+// Khởi tạo đối tượng Redis client
+let client = {};
+
+// Xử lý các sự kiện kết nối Redis
+const handleEventConnection = ({ conectionRedis }) => {
+    conectionRedis.on(statusConnectRedis.CONNECT, () => {
+        console.log('Redis: Connected');
+    });
+    conectionRedis.on(statusConnectRedis.END, () => {
+        console.log('Redis: Connection ended');
+    });
+    conectionRedis.on(statusConnectRedis.RECONECT, () => {
+        console.log('Redis: Reconnecting');
+    });
+    conectionRedis.on(statusConnectRedis.ERROR, (err) => {
+        console.log(`Redis error: ${err}`);
+    });
+};
+
+// Khởi tạo kết nối Redis
+const initRedis = () => {
+    const instanceRedis = redis.createClient({
+        url: `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`
+    });
+
+    client.instanceConnect = instanceRedis;
     handleEventConnection({
         conectionRedis: instanceRedis
-    })
+    });
 
-}
-const getRedist = () => client
+    instanceRedis.connect().then(() => {
+        console.log('Redis client connected');
+    }).catch((err) => {
+        console.error('Redis client connection error:', err);
+    });
+};
 
-const closeRedist = () => {
+// Lấy instance Redis
+const getRedis = () => {
+    if (!client.instanceConnect) {
+        throw new Error('Redis client is not initialized');
+    }
+    return client.instanceConnect;
+};
+// Đóng kết nối Redis
+const closeRedis = () => {
     if (client.instanceConnect) {
         client.instanceConnect.quit((err, response) => {
             if (err) {
@@ -45,17 +65,6 @@ const closeRedist = () => {
             }
         });
     }
-}
+};
 
-module.exports = { initRedist, getRedist, closeRedist }
-// // create a new cline
-// const client = redis.createClient(
-//     {
-//         host: process.env.REDIS_HOST || 'localhost',
-//         port: process.env.REDIS_PORT || 6379
-//     }
-// );
-// client.on('error', err =>{
-//     console.error("Redis Errror:::: ",err);
-// })
-// module.exports = client;
+module.exports = { initRedis, getRedis, closeRedis };
