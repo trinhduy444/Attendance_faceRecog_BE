@@ -110,7 +110,7 @@ class AttendanceController {
 
     getAttendance(req, res) {
         let { studentId, courseGroupId, attendDate } = req.query;
-        console.log( 'control',{ studentId, courseGroupId, attendDate })
+        console.log('control', { studentId, courseGroupId, attendDate })
         studentId = studentId || 0;
         courseGroupId = courseGroupId || 0;
         attendDate = attendDate || null;
@@ -130,7 +130,23 @@ class AttendanceController {
                 });
             });
     }
+    getAttendanceDetail(req, res) {
+        const { studentId, courseGroupId, attendDate } = req.query;
+        attendanceModel.getAttendanceDetail(studentId, courseGroupId, attendDate).then((data) => {
 
+            return res.status(200).json({
+                status: 200,
+                message: 'Get Attendance Detail Successfully',
+                metadata: data
+            })
+        }).catch((err) => {
+            console.error(err)
+            return res.status(500).json({
+                status: 500,
+                message: err,
+            });
+        });
+    }
     putAttendance(req, res) {
         let { studentId, courseGroupId, attendDate, attendYn, enterTime, note } = req.body;
         studentId = studentId || 0;
@@ -227,6 +243,7 @@ class AttendanceController {
                 });
             });
     }
+    
     uploadImage = async (req, res) => {
         try {
             const { user_id, course_group_id, date, type } = req.body;
@@ -282,18 +299,16 @@ class AttendanceController {
             return res.status(500).json({ message: 'Lỗi khi upload ảnh', error: error.message });
         }
     }
-
-    checkStatusStudentInCourseGroup = async (req, res) =>{
-        try{
-            const {courseGroupId, studentId} = req.body;
-            console.log(courseGroupId, studentId);
+    checkStatusStudentInCourseGroup = async (req, res) => {
+        try {
+            const { courseGroupId, studentId } = req.body;
+            
             const result = await attendanceModel.checkStatusStudentInCourseGroup(courseGroupId, studentId)
-            return res.status(200).json({metadata: result})
+            return res.status(200).json({ metadata: result })
         } catch (error) {
             console.error(error)
             res.status(500).json({ message: 'Lỗi khi upload ảnh', error: error.message });
         }
-        
     }
 }
 

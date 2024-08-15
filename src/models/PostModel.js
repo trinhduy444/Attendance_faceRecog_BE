@@ -44,7 +44,8 @@ class PostModel {
             const q = `SELECT pg.*, su.nickname, su.avatar_path 
                     FROM PostGroup AS pg 
                     RIGHT JOIN SysUser AS su ON su.user_id = pg.creator_id 
-                    WHERE pg.status = 1 AND pg.course_group_id = ?;
+                    WHERE pg.status = 1 AND pg.course_group_id = ?
+                    ORDER BY pg.create_time DESC;
                     `;
             const params = [course_group_id];
             db.query(q, params, (err, result) => {

@@ -108,7 +108,7 @@ class AttendanceRawDataModel {
                     return resolve(true);  // Bản ghi đã tồn tại
                 } else {
                     return resolve(false); // Bản ghi chưa tồn tại
-                }   
+                }
             });
         });
     }
@@ -189,7 +189,6 @@ class AttendanceRawDataModel {
     // Get list of attendance
     getAttendances(studentId, courseGroupId, attendDate) {
         // Convert string to date
-        console.log(studentId, courseGroupId, attendDate)
         attendDate = attendDate == null ? null : new Date(attendDate);
 
         studentId = sql.Int(studentId);
@@ -237,6 +236,28 @@ class AttendanceRawDataModel {
         });
     }
 
+    // get Attendance Detail
+    getAttendanceDetail(student_id, course_group_id, attend_date) {
+        student_id = sql.Int(student_id)
+        course_group_id = sql.Int(course_group_id)
+        return new Promise((resolve, reject) => {
+            let q = 'select at.*,sy.avatar_path,sy.nickname from Attendance as at inner join sysUser as sy on at.student_id = sy.user_id where student_id = ? and course_group_id = ? ';
+            let params = [student_id, course_group_id];
+            if (attend_date) {
+                q += ' and attend_date = ?';
+                params.push(attend_date);
+            }
+            db.query(q, params, (err, rows) => {
+                if (err) { reject(err); }
+                else {
+                    if (attend_date) {
+                        resolve(rows[0]);
+                    }
+                    resolve(rows);
+                }
+            });
+        });
+    }
     // Delete attendance
     deleteAttendance(key) {
         let { studentId, courseGroupId, attendDate } = key;
@@ -320,6 +341,7 @@ class AttendanceRawDataModel {
             });
         });
     }
+    
     handleSendMail = async (result) => {
         let title;
         let content;
