@@ -65,6 +65,30 @@ class AttendanceRawDataModel {
             });
         });
     }
+
+    // Update attendance raw data image path
+    updateAttendanceRawDataImagePath(attendanceRawData) {
+        let { studentId, courseGroupId, attendDate, attendType, attendImagePath } = attendanceRawData;
+        
+        // Convert string to date
+        attendDate = attendDate == null ? null : new Date(attendDate);
+
+        studentId = sql.Int(studentId);
+        courseGroupId = sql.Int(courseGroupId);
+        attendDate = sql.Date(attendDate);
+        attendType = sql.TinyInt(attendType);
+        attendImagePath = sql.VarChar(attendImagePath);
+
+        return new Promise((resolve, reject) => {
+            const q = 'update AttendanceRawData set attend_image_path = ? where student_id = ? and course_group_id = ? and attend_date = ? and attend_type = ?';
+            const params = [attendImagePath, studentId, courseGroupId, attendDate, attendType];
+            db.query(q, params, (err, rows) => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+    }
+
     // check student đã điểm danh
     checkStudentAttendance(studentId, courseGroupId, attendType) {
         return new Promise((resolve, reject) => {
@@ -83,13 +107,11 @@ class AttendanceRawDataModel {
                 if (result.length > 0) {
                     return resolve(true);  // Bản ghi đã tồn tại
                 } else {
-
                     return resolve(false); // Bản ghi chưa tồn tại
                 }
             });
         });
     }
-
 
     // Add new Attendance Raw Data with server date time
     addAttendanceRawDataServerDateTime(attendanceRawData, userId) {
@@ -105,7 +127,7 @@ class AttendanceRawDataModel {
             this.checkStudentAttendance(studentId, courseGroupId, attendType)
                 .then(exists => {
                     if (exists) {
-                        return resolve('Student already checked in.');
+                        return resolve(false);
                     }
                     else {
                         const insertQuery = `
@@ -116,16 +138,14 @@ class AttendanceRawDataModel {
 
                         db.query(insertQuery, insertParams, (err, rows) => {
                             if (err) return reject(err);
-                            resolve();
+                            resolve(true);
                         });
                     }
                     // Nếu chưa điểm danh, thực hiện thêm mới dữ liệu
-
                 })
                 .catch(err => reject(err));
         });
     }
-
 
     /*
     // delete AttendanceRawData
@@ -147,17 +167,18 @@ class AttendanceRawDataModel {
     */
 
     // Update Attendance from raw data
-    updateAttendanceFromRawData(courseGroupId, attendDate, userId) {
+    updateAttendanceFromRawData(courseGroupId, attendDate, userId, forceUpdate) {
         // Convert string to date
         attendDate = attendDate == null ? null : new Date(attendDate);
 
         courseGroupId = sql.Int(courseGroupId);
         attendDate = sql.Date(attendDate);
         userId = sql.Int(userId);
+        forceUpdate = sql.Bit(forceUpdate);
 
         return new Promise((resolve, reject) => {
-            const q = "exec UpdateAttendanceFromRawData ?, ?, ?";
-            const params = [courseGroupId, attendDate, userId];
+            const q = "exec UpdateAttendanceFromRawData ?, ?, ?, ?";
+            const params = [courseGroupId, attendDate, userId, forceUpdate];
             db.query(q, params, (err, rows, output) => {
                 if (err) reject(err);
                 resolve();
@@ -167,7 +188,6 @@ class AttendanceRawDataModel {
 
     // Get list of attendance
     getAttendances(studentId, courseGroupId, attendDate) {
-
         // Convert string to date
         attendDate = attendDate == null ? null : new Date(attendDate);
 
@@ -249,7 +269,7 @@ class AttendanceRawDataModel {
         courseGroupId = sql.Int(courseGroupId);
         attendDate = sql.Date(attendDate);
 
-        const q = 'delete attendance where student_id = ? and course_group_id = ? and attend_date = ?';
+        const q = 'delete attendance where ? in (student_id, -1) and course_group_id = ? and attend_date = ?';
         const params = [studentId, courseGroupId, attendDate];
 
         return new Promise((resolve, reject) => {
@@ -302,6 +322,7 @@ class AttendanceRawDataModel {
             });
         });
     }
+
     checkStatusStudentInCourseGroup(courseGroupId, studentId) {
         courseGroupId = sql.Int(courseGroupId);
         studentId = sql.Int(studentId);
@@ -320,6 +341,7 @@ class AttendanceRawDataModel {
             });
         });
     }
+    
     handleSendMail = async (result) => {
         let title;
         let content;

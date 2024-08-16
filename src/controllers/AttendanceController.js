@@ -62,12 +62,20 @@ class AttendanceController {
 
         const AttendanceRawData = { studentId, courseGroupId, attendType, attendImagePath };
         attendanceModel.addAttendanceRawDataServerDateTime(AttendanceRawData, req.user.user_id)
-            .then(() => {
-                return res.status(200).json({
-                    'status': 201,
-                    'message': 'Add Attendance Raw Data success.',
-                    'data': {}
-                });
+            .then((notExists) => {
+                if (notExists) {
+                    return res.status(201).json({
+                        'status': 201,
+                        'message': 'Add Attendance Raw Data success.',
+                        'data': {}
+                    });
+                } else {
+                    return res.status(200).json({
+                        'status': 200,
+                        'message': 'Attendance Raw Data exists.',
+                        'data': {}
+                    });
+                }
             }).catch((err) => {
                 console.error(err);
                 return res.status(500).json({
@@ -79,24 +87,25 @@ class AttendanceController {
     }
 
     updateAttendanceFromRawData(req, res) {
-        let { courseGroupId, attendDate } = req.body;
+        let { courseGroupId, attendDate, forceUpdate } = req.body;
         courseGroupId = courseGroupId || 0;
         attendDate = attendDate || null;
+        forceUpdate = forceUpdate || false;
 
-        attendanceModel.updateAttendanceFromRawData(courseGroupId, attendDate, req.user.user_id)
-            .then(() => {
-                return res.status(200).json({
-                    'status': 200,
-                    'message': 'Update attendance data from raw data success.',
-                    'data': {}
-                });
-            }).catch((err) => {
-                return res.status(500).json({
-                    'status': 500,
-                    'message': err,
-                    'data': {}
-                });
+        attendanceModel.updateAttendanceFromRawData(courseGroupId, attendDate, req.user.user_id, forceUpdate)
+        .then(() => {
+            return res.status(200).json({
+                'status': 200,
+                'message': 'Update attendance data from raw data success.',
+                'data': {}
             });
+        }).catch((err) => {
+            return res.status(500).json({
+                'status': 500,
+                'message': err,
+                'data': {}
+            });
+        });
     }
 
     getAttendance(req, res) {
@@ -234,6 +243,7 @@ class AttendanceController {
                 });
             });
     }
+    
     uploadImage = async (req, res) => {
         try {
             const { user_id, course_group_id, date, type } = req.body;
@@ -272,22 +282,33 @@ class AttendanceController {
             };
 
             const result = await streamUpload(req.file, uploadOptions);
-            return res.status(201).json({ link_anh: result.secure_url });
+            const attendanceRawData = {
+                studentId: user_id,
+                courseGroupId: course_group_id,
+                attendDate: date,
+                attendType: type,
+                attendImagePath: result.secure_url
+            };
+            attendanceModel.updateAttendanceRawDataImagePath(attendanceRawData)
+                .then(() => {
+                    return res.status(201).json({ link_anh: result.secure_url });
+                }).catch((err) => {
+                    return res.status(500).json({ message: 'Lỗi khi upload ảnh', error: err });        
+                });
         } catch (error) {
-            res.status(500).json({ message: 'Lỗi khi upload ảnh', error: error.message });
+            return res.status(500).json({ message: 'Lỗi khi upload ảnh', error: error.message });
         }
     }
     checkStatusStudentInCourseGroup = async (req, res) => {
         try {
             const { courseGroupId, studentId } = req.body;
-            console.log(courseGroupId, studentId);
+            
             const result = await attendanceModel.checkStatusStudentInCourseGroup(courseGroupId, studentId)
             return res.status(200).json({ metadata: result })
         } catch (error) {
             console.error(error)
             res.status(500).json({ message: 'Lỗi khi upload ảnh', error: error.message });
         }
-
     }
 }
 
