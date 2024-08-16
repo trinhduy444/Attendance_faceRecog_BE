@@ -26,6 +26,12 @@ class AuthController {
 
                         })
                     }
+                    if (user.status === false) {
+                        return res.json({
+                            status: 401,
+                            message: "Accound denied, pls contact with administrator",
+                        });
+                    }
 
                     const { privateKey, publicKey } = createKeys();
 

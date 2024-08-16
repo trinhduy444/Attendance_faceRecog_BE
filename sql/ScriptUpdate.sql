@@ -405,3 +405,5 @@ BEGIN
 	DROP TABLE #student, #tmp, #data
 END
 GO
+
+-- 16-08 thêm role tổng quản trị

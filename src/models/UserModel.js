@@ -141,7 +141,8 @@ class UserModel {
                             phone, 
                             avatar_path, 
                             course_year, 
-                            gender, 
+                            gender,
+                            status, 
                             faculty.faculty_name 
                            FROM sysuser 
                            LEFT JOIN faculty 
@@ -233,7 +234,43 @@ class UserModel {
                     console.log('Data retrieved from Redis cache');
                     return resolve(JSON.parse(cachedData));
                 }
-                const q = 'select user_id, email, username, nickname, phone, avatar_path, course_year, gender, faculty.faculty_name from sysuser left join faculty On SysUser.faculty_id = faculty.faculty_id where role_id = 2';
+                const q = 'select user_id, email, username, nickname, phone, avatar_path, course_year, gender,status, faculty.faculty_name from sysuser left join faculty On SysUser.faculty_id = faculty.faculty_id where role_id = 2';
+
+                db.query(q, (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        redisClient.set(cacheKey, JSON.stringify(rows), {
+                            EX: 3600,
+                        });
+
+                        console.log('Data retrieved from SQL and stored in Redis');
+                        resolve(rows);
+                    }
+                });
+
+            } catch (err) {
+                console.error('Error while retrieving data: ', err);
+                reject(err);
+            }
+
+        });
+    }
+
+    // Get All Admin
+    getAllAdmins() {
+        const cacheKey = 'allAdmins';
+
+        return new Promise(async (resolve, reject) => {
+            try {
+                const redisClient = getRedis();
+                const cachedData = await redisClient.get(cacheKey);
+
+                if (cachedData) {
+                    console.log('Data retrieved from Redis cache');
+                    return resolve(JSON.parse(cachedData));
+                }
+                const q = 'select user_id, email, username, nickname, phone, avatar_path,status from sysuser where role_id= 1';
 
                 db.query(q, (err, rows) => {
                     if (err) {
@@ -318,6 +355,21 @@ class UserModel {
                 console.log(`Cache with key '${cacheKey}' does not exist`);
             }
         });
+    }
+    //Create Admin 
+    createAdmin(email, username, password, nickname, phone, creator_id) {
+        this.deleteKey('allAdmins')
+        return new Promise(async (resolve, reject) => {
+            const passwordHashed = await bcrypt.hash(password, 10);
+            const q = `insert into sysuser(email, username, password, nickname, phone, role_id, status, creator_id,create_time) values(?, ?, ?, ?, ?, ?, ?, ?, getDate())`;
+            const params = [email, username, passwordHashed, nickname, phone, 1, 1, creator_id];
+            db.query(q, params, (err, row) => {
+                if (err) reject(err);
+
+                resolve(row)
+            });
+        })
+
     }
     // Create Multiple Users
     createUsers = async (users, creatorId) => {
@@ -508,6 +560,78 @@ class UserModel {
             });
         });
     }
+    lockAccount(user_id, updater_id, type = 1) {
+        return new Promise((resolve, reject) => {
+            const q = 'UPDATE SysUser SET status = 0, updater_id = ?, update_time = GETDATE() WHERE user_id = ?';
+            db.query(q, [updater_id, user_id], (err, rows) => {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    switch (type) {
+                        case 1: {
+                            this.deleteKey('allAdmins')
+                            resolve(rows);
+                            break;
+                        }
+                        case 2: {
+                            this.deleteKey('allTeachers')
+                            resolve(rows);
+                            break;
+                        }
+                        case 3: {
+                            console.log('delete')
+                            this.deleteKey('allUsers')
+                            resolve(rows);
+                            break;
+                        }
+                        default: {
+                            this.deleteKey('allAdmins')
+                            resolve(rows);
+                            break;
+                        }
+                    }
+
+                }
+            });
+        });
+    }
+
+    unLockAccount(user_id, updater_id, type = 1) {
+        return new Promise((resolve, reject) => {
+            const q = 'UPDATE SysUser SET status = 1, updater_id = ?, update_time = GETDATE() WHERE user_id = ?';
+            db.query(q, [updater_id, user_id], (err, rows) => {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                } else {
+                    switch (type) {
+                        case 1: {
+                            this.deleteKey('allAdmins')
+                            resolve(rows);
+                            break;
+                        }
+                        case 2: {
+                            this.deleteKey('allTeachers')
+                            resolve(rows);
+                            break;
+                        }
+                        case 3: {
+                            this.deleteKey('allUsers')
+                            resolve(rows);
+                            break;
+                        }
+                        default: {
+                            this.deleteKey('allAdmins')
+                            resolve(rows);
+                            break;
+                        }
+                    }
+                }
+            });
+        });
+    }
+
     updateUser(oldKey, user) {
 
     }

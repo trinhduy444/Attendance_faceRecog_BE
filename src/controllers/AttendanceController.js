@@ -100,6 +100,7 @@ class AttendanceController {
                 'data': {}
             });
         }).catch((err) => {
+            console.error(err);
             return res.status(500).json({
                 'status': 500,
                 'message': err,

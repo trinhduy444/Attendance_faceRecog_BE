@@ -8,6 +8,7 @@ const { getInfoData } = require('../utils/index');
 
 class AdminController {
     getUsers = async (req, res) => {
+
         if (req.user?.role_id !== 1) {
             throw new ForbiddenError('You are not allowed');
         }
@@ -43,6 +44,36 @@ class AdminController {
             message: "Get Teachers Successfully",
             metadata: teachers,
         })
+    };
+    getAllAdmins = async (req, res) => {
+        if (req.user?.role_id !== 1 && req.user.user_id !== 1) {
+            throw new ForbiddenError('You are not allowed');
+        }
+        const admins = await userModel.getAllAdmins();
+        // console.log(users)
+        return res.status(200).json({
+            status: 200,
+            message: "Get Admins Successfully",
+            metadata: admins,
+        })
+    };
+    createAdmin = (req, res) => {
+        const { email, username, password, nickname, phone } = req.body;
+        if (req.user?.role_id !== 1 && req.user.user_id !== 1) {
+            throw new ForbiddenError('You are not allowed');
+        }
+        userModel.createAdmin(email, username, password, nickname, phone, req.user.user_id)
+            .then((admin) => {
+                console.log(admin)
+                return res.status(201).json({
+                    status: 201,
+                    message: 'Admin created successfully'
+                })
+            }).catch((err) => {
+                console.error(err)
+                return res.status(500).json({ message: 'Error while creating admin', error: err });
+            });
+
     };
     createUsers = async (req, res) => {
         const { users } = req.body;
@@ -236,6 +267,107 @@ class AdminController {
         }
 
     };
+    lockAccount(req, res) {
+        try {
+            const { user_id } = req.params;
+            if (req.user?.role_id !== 1 && req.user.user_id !== 1) {
+                throw new ForbiddenError('You are not allowed');
+            }
+            userModel.lockAccount(user_id, req.user.user_id,1).then((data) => {
+                if (data) {
+                    return res.status(200).json({
+                        status: 200,
+                        message: 'Lock Account Success',
+                    });
+                } else {
+                    return res.status(204).json({
+                        status: 204,
+                        message: 'Lock Account Failed',
+                    });
+                }
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Error when locking account', error: err.message });
+        }
+    }
+
+    unLockAccount(req, res) {
+        try {
+            const { user_id } = req.params;
+            if (req.user?.role_id !== 1 && req.user.user_id !== 1) {
+                throw new ForbiddenError('You are not allowed');
+            }
+            userModel.unLockAccount(user_id, req.user.user_id, 1).then((data) => {
+                if (data) {
+                    return res.status(200).json({
+                        status: 200,
+                        message: 'Unlock Account Success',
+                    });
+                } else {
+                    return res.status(204).json({
+                        status: 204,
+                        message: 'Unlock Account Failed',
+                    });
+                }
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Error when unlocking account', error: err.message });
+        }
+    }
+
+    lockUserAccount(req, res) {
+        try {
+            const { user_id,role_id } = req.params;
+            console.log( user_id,role_id)
+            if (req.user?.role_id !== 1) {
+                throw new ForbiddenError('You are not allowed');
+            }
+            userModel.lockAccount(user_id, req.user.user_id,parseInt(role_id)).then((data) => {
+                if (data) {
+                    return res.status(200).json({
+                        status: 200,
+                        message: 'Lock Account Success',
+                    });
+                } else {
+                    return res.status(204).json({
+                        status: 204,
+                        message: 'Lock Account Failed',
+                    });
+                }
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Error when locking account', error: err.message });
+        }
+    }
+
+    unLockUserAccount(req, res) {
+        try {
+            const { user_id,role_id } = req.params;
+            if (req.user?.role_id !== 1) {
+                throw new ForbiddenError('You are not allowed');
+            }
+            userModel.unLockAccount(user_id, req.user.user_id,parseInt(role_id)).then((data) => {
+                if (data) {
+                    return res.status(200).json({
+                        status: 200,
+                        message: 'Unlock Account Success',
+                    });
+                } else {
+                    return res.status(204).json({
+                        status: 204,
+                        message: 'Unlock Account Failed',
+                    });
+                }
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Error when unlocking account', error: err.message });
+        }
+    }
+
 }
 
 module.exports = new AdminController;

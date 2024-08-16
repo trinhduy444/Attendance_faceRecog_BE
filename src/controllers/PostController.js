@@ -67,7 +67,7 @@ class PostController {
         try {
             const teacher_id = req.user.user_id;
             const isCreated = await postModel.checkIsCreated(post_id, teacher_id);
-            if (!isCreated && req.user.user_id !== 1) {
+            if (!isCreated && req.user.role_id !== 1) {
                 throw new ForbiddenError("You are not allowed to create a post");
             }
             const setPost = await postModel.setPostInvalid(post_id, teacher_id);
@@ -90,7 +90,7 @@ class PostController {
         try {
             const teacher_id = req.user.user_id;
             const isCreated = await postModel.checkIsCreated(post_id, teacher_id);
-            if (!isCreated && req.user.user_id !== 1) {
+            if (!isCreated && req.user.role_id !== 1) {
                 throw new ForbiddenError("You are not allowed to create a post");
             }
             const { title, content, file_link } = req.body
