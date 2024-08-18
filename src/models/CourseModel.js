@@ -179,7 +179,7 @@ class CourseModel {
 
     createCourseGroupStudentList(course_group_id, userId, creator_id) {
         return new Promise((resolve, reject) => {
-            const q = 'INSERT INTO CourseGroupStudentList (course_group_id, student_id, total_absent, ban_yn,status, creator_id, create_time) VALUES (?, ?,?,?, ?, ?, getdate())';
+            const q = 'INSERT INTO CourseGroupStudentList (course_group_id, student_id, total_absent, ban_yn, status, creator_id, create_time) VALUES (?, ?,?,?, ?, ?, getdate())';
             const params = [course_group_id, userId, 0, 0, 1, creator_id];
             db.query(q, params, (err, result) => {
                 if (err) {
@@ -359,9 +359,6 @@ class CourseModel {
         }
     };
 
-
-
-
     createSchedule = (course_group_id, classroomshift_id, semester_year_id, week_from, week_to, week_day, exclude_week, total_shift, creator_id) => {
         if (exclude_week === null || exclude_week === undefined) {
             exclude_week = '';
@@ -515,6 +512,7 @@ class CourseModel {
             });
         });
     }
+
     getSemesterIDByInfo(semester, year) {
         return new Promise((resolve, reject) => {
             let q = `select semester_year_id from SemesterYear where semester = ? and year = ?`;
@@ -525,6 +523,22 @@ class CourseModel {
                 } else {
                     resolve(result);
                 }
+            });
+        });
+    }
+
+    // Update student total absent
+    updateTotalAbsent(courseGroupId, studentList) {
+        courseGroupId = sql.Int(courseGroupId);
+        studentList = sql.VarChar(studentList);
+
+        const q = 'exec UpdateTotalAbsent ?, ?';
+        const params = [courseGroupId, studentList];
+
+        return new Promise((resolve, reject) => {
+            db.query(q, params, (err, rows, output) => {
+                if (err) reject(err);
+                resolve();
             });
         });
     }

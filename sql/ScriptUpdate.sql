@@ -406,4 +406,84 @@ BEGIN
 END
 GO
 
--- 16-08 thêm role tổng quản trị
+-- 16/08 --PHUOCTL-- Thêm chức năng update total absent
+-- Function convert string to table
+CREATE FUNCTION StringToTable(@s NVARCHAR(4000), @split CHAR(1))
+RETURNS @table TABLE(stt INT IDENTITY(1, 1), val VARCHAR(32))
+AS -- Split string to table, skip space and empty string
+BEGIN
+	DECLARE @val VARCHAR(32), @i INT 
+	IF LEFT(@s, 1) = ',' SET @s = SUBSTRING(@s, 1, LEN(@s))
+	IF @split = '' SET @split = ','
+
+	SET @i = CHARINDEX(@split, @s)
+	WHILE @i != 0 OR LEFT(@s, 1) = ',' BEGIN
+		SET @val = LTRIM(RTRIM(SUBSTRING(@s, 0, @i)))
+		SET @s = SUBSTRING(@s, @i + 1, LEN(@s))
+		SET @i = CHARINDEX(@split, @s)
+		INSERT INTO @table (val) SELECT @val WHERE @val <> ''
+	END
+
+	SET @val = LTRIM(RTRIM(@s))
+	INSERT INTO @table (val) SELECT @val WHERE @val <> ''
+	RETURN
+END
+GO
+select * from dbo.StringToTable('123, 124, 125, 126', ',')
+GO
+
+-- Store cập nhật tổng số buổi vắng của sinh viên
+CREATE PROCEDURE UpdateTotalAbsent
+	@course_group_id INT,
+	@user_id_list VARCHAR(256) = '' -- Chuỗi danh sách student_id muốn cập nhật cách nhau bằng dấu phẩy
+AS
+BEGIN
+	SET NOCOUNT ON
+
+	-- Key
+	SELECT a.val AS user_id INTO #userlist FROM dbo.StringToTable(@user_id_list, ',') a GROUP BY a.val
+	
+	-- Get total absent
+	SELECT a.course_group_id, a.student_id, SUM(IIF(a.attend_yn = 0, 1, 0)) AS total_absent
+		INTO #total FROM Attendance a
+		WHERE a.course_group_id = @course_group_id AND (@user_id_list = '' OR EXISTS(SELECT 1 FROM #userlist x WHERE a.student_id = x.user_id))
+		GROUP BY a.course_group_id, a.student_id
+
+	-- Update
+	UPDATE CourseGroupStudentList SET total_absent = b.total_absent FROM CourseGroupStudentList a JOIN #total b ON a.course_group_id = b.course_group_id AND a.student_id = b.student_id
+	DROP TABLE #userlist, #total
+END
+GO
+
+ALTER VIEW ViewCourseGroupInfoByStudentId
+AS
+	SELECT
+		cg.course_group_id,
+		cg.group_code,
+		cg.course_code,
+		ISNULL(cls.shift_code, '') AS shift_code,
+		ISNULL(cls.classroom_code, '') AS classroom_code,
+		ISNULL(s.start_time, '00:00') AS start_time,
+		ISNULL(s.end_time, '00:00') AS end_time,
+		cgsl.student_id,
+		cgsl.total_absent,
+		cgsl.ban_yn,
+		cgsl.status,
+		ISNULL(sh.week_from, 0) AS week_from,
+		ISNULL(sh.week_to, 0) AS week_to,
+		ISNULL(sh.week_day, 0) AS week_day,
+		ISNULL(sh.exclude_week, '') AS exclude_week,
+		ISNULL(sh.total_shift, 0) AS total_shift,
+		ISNULL(su.nickname, '') AS nickname,
+		ISNULL(su.avatar_path, '') AS avatar_path,
+		ISNULL(c.course_name, '') AS course_name,
+		cg.semester_year_id
+	FROM
+		CourseGroupStudentList cgsl
+		INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
+		LEFT JOIN Schedule sh ON cgsl.course_group_id = sh.course_group_id
+		LEFT JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
+		LEFT JOIN Shift s on cls.shift_code = s.shift_code
+		LEFT JOIN sysUser su ON cg.teacher_id = su.user_id
+		LEFT JOIN Course c ON cg.course_code = c.course_code;
+Go
