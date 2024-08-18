@@ -159,13 +159,16 @@ CREATE PROCEDURE UpdateAttendanceFromRawData
 	@course_group_id INT,
 	@attend_date DATE,
 	@user_id INT,
-	@force_update_yn BIT = 0 -- 0. Update if not exists data, 1. Always update
+	@force_update_yn BIT = 0
+-- 0. Update if not exists data, 1. Always update
 AS
 BEGIN
 	SET NOCOUNT ON
 
 	-- Check if attendance data already exists and force_update_yn = 0. Don't update
-	IF @force_update_yn = 0 AND EXISTS(SELECT 1 FROM Attendance x WHERE x.course_group_id = @course_group_id AND x.attend_date = @attend_date) BEGIN
+	IF @force_update_yn = 0 AND EXISTS(SELECT 1
+		FROM Attendance x
+		WHERE x.course_group_id = @course_group_id AND x.attend_date = @attend_date) BEGIN
 		SELECT 'Update cancel' AS message
 		RETURN;
 	END
@@ -173,35 +176,60 @@ BEGIN
 	DECLARE @CurrDate DATETIME = GETDATE()
 
 	-- Student in group list
-	SELECT student_id INTO #student FROM CourseGroupStudentList WHERE course_group_id = @course_group_id
+	SELECT student_id
+	INTO #student
+	FROM CourseGroupStudentList
+	WHERE course_group_id = @course_group_id
 
 	-- Get attendant data
-	SELECT * INTO #tmp FROM AttendanceRawData WHERE course_group_id = @course_group_id AND attend_date = @attend_date
+	SELECT *
+	INTO #tmp
+	FROM AttendanceRawData
+	WHERE course_group_id = @course_group_id AND attend_date = @attend_date
 
 	-- Struct
-	SELECT TOP 0 a.* INTO #data FROM Attendance a WHERE 1=0
+	SELECT TOP 0
+		a.*
+	INTO #data
+	FROM Attendance a
+	WHERE 1=0
 
 	-- Insert student with it attendant state
-	INSERT INTO #data (student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
-		SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type FROM #tmp a WHERE a.attend_type % 2 = 0
+	INSERT INTO #data
+		(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+			SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type
+		FROM #tmp a
+		WHERE a.attend_type % 2 = 0
 	UNION ALL
-		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0 FROM #student a WHERE NOT EXISTS(SELECT 1 FROM #tmp x WHERE a.student_id = x.student_id)
+		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0
+		FROM #student a
+		WHERE NOT EXISTS(SELECT 1
+		FROM #tmp x
+		WHERE a.student_id = x.student_id)
 
 	-- Update leave time
 	UPDATE #data SET leave_time = ISNULL(b.attend_time, '00:00') FROM #data a LEFT JOIN #tmp b ON a.student_id = b.student_id AND a.course_group_id = b.course_group_id AND a.attend_date = b.attend_date AND a.attend_type = b.attend_type - 1 WHERE a.attend_type % 2 = 0
 
 	-- Insert student who miss start of class
-	INSERT INTO #data (student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
-		SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1
-			FROM #tmp a WITH(NOLOCK) WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1 FROM #tmp x WITH(NOLOCK) WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
+	INSERT INTO #data
+		(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+	SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1
+	FROM #tmp a WITH(NOLOCK)
+	WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1
+		FROM #tmp x WITH(NOLOCK)
+		WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
 
 	UPDATE #data SET note = '', status = 1, creator_id = @user_id, updater_id = @user_id, create_time = @CurrDate, update_time = @CurrDate
 
 	BEGIN TRY
 		BEGIN TRANSACTION;
 			
-			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1 FROM #data x WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
-			INSERT INTO Attendance SELECT * FROM #data
+			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1
+	FROM #data x
+	WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
+			INSERT INTO Attendance
+	SELECT *
+	FROM #data
 
 			SELECT 'Update finish' AS message
 
@@ -536,49 +564,111 @@ GO
 
 -- 13/08 view All Course Groups Student
 
-
 CREATE VIEW ViewCourseGroupInfoByStudentId
 AS
 	SELECT
 		cg.course_group_id,
 		cg.group_code,
 		cg.course_code,
-		cls.shift_code,
-		cls.classroom_code,
-		s.start_time,
-		s.end_time,
+		ISNULL(cls.shift_code, '') AS shift_code,
+		ISNULL(cls.classroom_code, '') AS classroom_code,
+		ISNULL(s.start_time, '00:00') AS start_time,
+		ISNULL(s.end_time, '00:00') AS end_time,
 		cgsl.student_id,
 		cgsl.total_absent,
 		cgsl.ban_yn,
 		cgsl.status,
-		sh.week_from,
-		sh.week_to,
-		sh.week_day,
-		sh.exclude_week,
-		sh.total_shift,
-		su.nickname,
-		su.avatar_path,
-		c.course_name,
+		ISNULL(sh.week_from, 0) AS week_from,
+		ISNULL(sh.week_to, 0) AS week_to,
+		ISNULL(sh.week_day, 0) AS week_day,
+		ISNULL(sh.exclude_week, '') AS exclude_week,
+		ISNULL(sh.total_shift, 0) AS total_shift,
+		ISNULL(su.nickname, '') AS nickname,
+		ISNULL(su.avatar_path, '') AS avatar_path,
+		ISNULL(c.course_name, '') AS course_name,
 		cg.semester_year_id
 	FROM
 		CourseGroupStudentList cgsl
 		INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
-		INNER JOIN Schedule sh ON cgsl.course_group_id = sh.course_group_id
-		INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
-		INNER JOIN Shift s on cls.shift_code = s.shift_code
-		INNER JOIN sysUser su ON cg.teacher_id = su.user_id
-		INNER JOIN Course c ON cg.course_code = c.course_code;
+		LEFT JOIN Schedule sh ON cgsl.course_group_id = sh.course_group_id
+		LEFT JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
+		LEFT JOIN Shift s on cls.shift_code = s.shift_code
+		LEFT JOIN sysUser su ON cg.teacher_id = su.user_id
+		LEFT JOIN Course c ON cg.course_code = c.course_code;
 Go
 --SELECT * FROM ViewCourseGroupInfoByStudentId WHERE student_id = 65 and semester_year_id = 6
 
 -- 17/08 View All Student from Course Group
 create view viewAllStudentInCourseGroup
 as
-select cg.teacher_id,cg.semester_year_id,cg.course_group_id, cg.status,
-cgsl.student_id,cgsl.total_absent,cgsl.ban_yn, 
-sy.nickname, sy.username,sy.email,sy.gender,sy.faculty_id, fa.faculty_name
-from 
-CourseGroup as cg 
-inner join CourseGroupStudentList as cgsl on cgsl.course_group_id = cg.course_group_id 
-right join SysUser as sy on cgsl.student_id = sy.user_id
-right join Faculty as fa on sy.faculty_id = fa.faculty_id
+	select cg.teacher_id, cg.semester_year_id, cg.course_group_id, cg.status,
+		cgsl.student_id, cgsl.total_absent, cgsl.ban_yn,
+		sy.nickname, sy.username, sy.email, sy.gender, sy.faculty_id, fa.faculty_name
+	from
+		CourseGroup as cg
+		inner join CourseGroupStudentList as cgsl on cgsl.course_group_id = cg.course_group_id
+		right join SysUser as sy on cgsl.student_id = sy.user_id
+		right join Faculty as fa on sy.faculty_id = fa.faculty_id
+go
+-- Function convert string to table
+CREATE FUNCTION StringToTable(@s NVARCHAR(4000), @split CHAR(1))
+RETURNS @table TABLE(stt INT IDENTITY(1, 1),
+	val VARCHAR(32))
+AS -- Split string to table, skip space and empty string
+BEGIN
+	DECLARE @val VARCHAR(32), @i INT
+	IF LEFT(@s, 1) = ',' SET @s = SUBSTRING(@s, 1, LEN(@s))
+	IF @split = '' SET @split = ','
+
+	SET @i = CHARINDEX(@split, @s)
+	WHILE @i != 0 OR LEFT(@s, 1) = ',' BEGIN
+		SET @val = LTRIM(RTRIM(SUBSTRING(@s, 0, @i)))
+		SET @s = SUBSTRING(@s, @i + 1, LEN(@s))
+		SET @i = CHARINDEX(@split, @s)
+		INSERT INTO @table
+			(val)
+		SELECT @val
+		WHERE @val <> ''
+	END
+
+	SET @val = LTRIM(RTRIM(@s))
+	INSERT INTO @table
+		(val)
+	SELECT @val
+	WHERE @val <> ''
+	RETURN
+END
+GO
+select *
+from dbo.StringToTable('123, 124, 125, 126', ',')
+GO
+
+-- Store cập nhật tổng số buổi vắng của sinh viên
+CREATE PROCEDURE UpdateTotalAbsent
+	@course_group_id INT,
+	@user_id_list VARCHAR(256) = ''
+-- Chuỗi danh sách student_id muốn cập nhật cách nhau bằng dấu phẩy
+AS
+BEGIN
+	SET NOCOUNT ON
+
+	-- Key
+	SELECT a.val AS user_id
+	INTO #userlist
+	FROM dbo.StringToTable(@user_id_list, ',') a
+	GROUP BY a.val
+
+	-- Get total absent
+	SELECT a.course_group_id, a.student_id, SUM(IIF(a.attend_yn = 0, 1, 0)) AS total_absent
+	INTO #total
+	FROM Attendance a
+	WHERE a.course_group_id = @course_group_id AND (@user_id_list = '' OR EXISTS(SELECT 1
+		FROM #userlist x
+		WHERE a.student_id = x.user_id))
+	GROUP BY a.course_group_id, a.student_id
+
+	-- Update
+	UPDATE CourseGroupStudentList SET total_absent = b.total_absent FROM CourseGroupStudentList a JOIN #total b ON a.course_group_id = b.course_group_id AND a.student_id = b.student_id
+	DROP TABLE #userlist, #total
+END
+GO
