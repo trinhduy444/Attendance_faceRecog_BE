@@ -1,8 +1,12 @@
+// Require model
 const attendanceModel = require('../models/AttendanceModel');
 const userModel = require('../models/UserModel');
+const courseModel = require('../models/CourseModel');
+
 const { ForbiddenError, BadRequestError } = require('../core/ErrorResponse');
 const { cloudinary, CLOUDINARY_FOLDER2 } = require('../config/CloudinaryConfig');
 const streamifier = require('streamifier');
+
 class AttendanceController {
     getAttendanceRawData(req, res) {
         let { studentId, courseGroupId, attendDate, attendType } = req.query;
@@ -94,10 +98,13 @@ class AttendanceController {
 
         attendanceModel.updateAttendanceFromRawData(courseGroupId, attendDate, req.user.user_id, forceUpdate)
         .then(() => {
-            return res.status(200).json({
-                'status': 200,
-                'message': 'Update attendance data from raw data success.',
-                'data': {}
+            courseModel.updateTotalAbsent(courseGroupId, '')
+            .then(() => {
+                return res.status(200).json({
+                    'status': 200,
+                    'message': 'Update attendance data from raw data success.',
+                    'data': {}
+                });
             });
         }).catch((err) => {
             console.error(err);
@@ -161,10 +168,13 @@ class AttendanceController {
         const attendance = { attendYn, enterTime, note };
         attendanceModel.updateAttendance(oldKey, attendance, req.user.user_id)
             .then(() => {
-                return res.status(200).json({
-                    'status': 200,
-                    'message': 'Update attendance success.',
-                    'data': {}
+                courseModel.updateTotalAbsent(courseGroupId, studentId.toString())
+                .then(() => {
+                    return res.status(200).json({
+                        'status': 200,
+                        'message': 'Update attendance success.',
+                        'data': {}
+                    });
                 });
             }).catch((err) => {
                 return res.status(500).json({
@@ -184,10 +194,13 @@ class AttendanceController {
         const key = { studentId, courseGroupId, attendDate };
         attendanceModel.deleteAttendance(key)
             .then(() => {
-                return res.status(200).json({
-                    'status': 200,
-                    'message': 'Delete attendance success.',
-                    'data': {}
+                courseModel.updateTotalAbsent(courseGroupId, studentId == -1 ? '' : studentId.toString())
+                .then(() => {
+                    return res.status(200).json({
+                        'status': 200,
+                        'message': 'Delete attendance success.',
+                        'data': {}
+                    });
                 });
             }).catch((err) => {
                 return res.status(500).json({

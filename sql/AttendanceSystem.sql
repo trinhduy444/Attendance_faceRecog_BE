@@ -181,7 +181,8 @@ CREATE TABLE Schedule
 	[week_from] INT NOT NULL,
 	[week_to] INT NOT NULL,
 	[week_day] INt NOT NULL,
-	[exclude_week] VARCHAR(32),
+	[exclude_week] VARCHAR(32) NULL,
+	[total_shift] INT NULL,
 	[status] BIT NULL,
 	[creator_id] INT NULL,
 	[updater_id] INT NULL,
@@ -356,11 +357,6 @@ CREATE TABLE SemesterYear
 )
 ALTER TABLE SemesterYear ADD CONSTRAINT PK_SemesterYear PRIMARY KEY CLUSTERED(semester_year_id) ON [PRIMARY]
 
--- Update 8-8 CHẠY LẠI SCHEDULE TABLE
-alter table SemesterYear add week_from int, week_to int, exclude_week varchar(32)
-
-alter table Schedule add total_shift int
--- Cua Phuoc 12/08
 GO
 CREATE TABLE SysUserFace
 (

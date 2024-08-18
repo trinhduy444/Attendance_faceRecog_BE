@@ -121,7 +121,7 @@ class AttendanceRawDataModel {
         attendType = sql.TinyInt(attendType);
         attendImagePath = sql.VarChar(attendImagePath);
         userId = sql.Int(userId);
-        console.log("entry")
+        
         return new Promise((resolve, reject) => {
             // Gọi hàm kiểm tra trước khi thêm mới dữ liệu
             this.checkStudentAttendance(studentId, courseGroupId, attendType)
@@ -131,9 +131,8 @@ class AttendanceRawDataModel {
                     }
                     else {
                         const insertQuery = `
-                        INSERT INTO AttendanceRawData 
-                        (student_id, course_group_id, attend_date, attend_type, attend_time, attend_image_path, creator_id, create_time) 
-                        SELECT ?, ?, GETDATE(), ?, CONVERT(VARCHAR(5), GETDATE(), 108), ?, ?, GETDATE()`;
+                        INSERT INTO AttendanceRawData (student_id, course_group_id, attend_date, attend_type, attend_time, attend_image_path, creator_id, create_time) 
+                            SELECT ?, ?, GETDATE(), ?, CONVERT(VARCHAR(5), GETDATE(), 108), ?, ?, GETDATE()`;
                         const insertParams = [studentId, courseGroupId, attendType, attendImagePath, userId];
 
                         db.query(insertQuery, insertParams, (err, rows) => {
