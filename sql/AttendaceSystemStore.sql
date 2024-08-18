@@ -570,3 +570,15 @@ AS
 		INNER JOIN Course c ON cg.course_code = c.course_code;
 Go
 --SELECT * FROM ViewCourseGroupInfoByStudentId WHERE student_id = 65 and semester_year_id = 6
+
+-- 17/08 View All Student from Course Group
+create view viewAllStudentInCourseGroup
+as
+select cg.teacher_id,cg.semester_year_id,cg.course_group_id, cg.status,
+cgsl.student_id,cgsl.total_absent,cgsl.ban_yn, 
+sy.nickname, sy.username,sy.email,sy.gender,sy.faculty_id, fa.faculty_name
+from 
+CourseGroup as cg 
+inner join CourseGroupStudentList as cgsl on cgsl.course_group_id = cg.course_group_id 
+right join SysUser as sy on cgsl.student_id = sy.user_id
+right join Faculty as fa on sy.faculty_id = fa.faculty_id

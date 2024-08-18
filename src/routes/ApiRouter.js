@@ -12,6 +12,7 @@ const postRouterV1 = require('./v1/PostRouter');
 const attendanceRouterV1 = require('./v1/AttendanceRouter');
 const commentRouterV1 = require('./v1/CommentRouter');
 const notifyRouterV1 = require('./v1/NotifyRouter');
+const teacherRouterV1 = require('./v1/TeacherRouter');
 
 const scheduleRouterV1 = require('./v1/ScheduleRouter');
 
@@ -37,4 +38,7 @@ router.use('/v1/attendances', attendanceRouterV1);
 router.use('/v1/comment', commentRouterV1)
 router.use('/v1/notify', notifyRouterV1);
 router.use('/v1/schedule', scheduleRouterV1);
+router.use('/v1/teacher', teacherRouterV1);
+
+
 module.exports = router;

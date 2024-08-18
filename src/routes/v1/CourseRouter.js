@@ -54,4 +54,10 @@ router.post('/createStudentLists', authMiddleware.isLogin, authMiddleware.isAdmi
 
 // Get Coursse Groups Details
 
+// View All Student CourseGroup
+router.get('/viewAllStudentCourseGroup', authMiddleware.isLogin, courseController.viewAllStudentCourseGroup)
+router.get('/viewAllStudentCourseGroupByTeacher', authMiddleware.isLogin, courseController.viewAllStudentCourseGroupByTeacher)
+
+
+
 module.exports = router;

@@ -5,7 +5,9 @@ ALTER TABLE Attendance ADD [attend_yn] BIT NOT NULL
 GO
 
 -- Dữ liệu phòng học
-INSERT INTO Classroom(classroom_code, capacity, floor, description, status, creator_id, updater_id, create_time, update_time) VALUES
+INSERT INTO Classroom
+	(classroom_code, capacity, floor, description, status, creator_id, updater_id, create_time, update_time)
+VALUES
 	('C201', 50, 2, 'Phòng học có máy chiếu', 1, 1, 1, '2024-07-28 18:42:33.567', '2024-07-28 18:42:33.567'),
 	('C202', 50, 2, 'Phòng học có máy chiếu', 1, 1, 1, '2024-07-28 18:42:33.567', '2024-07-28 18:42:33.567'),
 	('C203', 50, 2, 'Phòng học có máy chiếu', 1, 1, 1, '2024-07-28 18:42:33.567', '2024-07-28 18:42:33.567'),
@@ -15,7 +17,9 @@ GO
 
 -- Thêm người dùng để test
 SET IDENTITY_INSERT SysUser ON
-INSERT INTO SysUser(user_id, email, username, password, nickname, phone, avatar_path, face_image_path, role_id, status, creator_id, updater_id, create_time, update_time) VALUES
+INSERT INTO SysUser
+	(user_id, email, username, password, nickname, phone, avatar_path, face_image_path, role_id, status, creator_id, updater_id, create_time, update_time)
+VALUES
 	(899, 'tranvana@gmail.com', 'GV10010899', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Trần Văn A', '0123456789', '', '', 2, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
 	(900, '52000900@gmail.com', '52000900', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Nguyễn Ðức Quyền', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
 	(901, '52000901@gmail.com', '52000901', '$2b$10$80tyEQ0RHJEVM6mBCNRJFOnFtn1Bm3TqHoBsYXTvnFLSV9FEGDNW2', N'Mã Công Hoán', '0123456789', '', '', 3, 1, 1, 1, '2024-05-26 12:42:33.567', '2024-05-26 12:42:33.567'),
@@ -27,7 +31,9 @@ SET IDENTITY_INSERT SysUser OFF
 
 -- Dữ liệu thời gian ca học
 SET IDENTITY_INSERT ClassRoomShift ON
-INSERT INTO ClassRoomShift(classroomshift_id, classroom_code, shift_code, status, creator_id, updater_id, create_time, update_time) VALUES
+INSERT INTO ClassRoomShift
+	(classroomshift_id, classroom_code, shift_code, status, creator_id, updater_id, create_time, update_time)
+VALUES
 	(201, 'C201', 'ca1', 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
 	(202, 'C202', 'ca1', 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
 	(203, 'C203', 'ca1', 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
@@ -37,13 +43,17 @@ GO
 
 -- Dữ liệu nhóm môn học
 SET IDENTITY_INSERT CourseGroup ON
-INSERT INTO CourseGroup(course_group_id, course_code, group_code, teacher_id, classroomshift_id, total_student_qty, status, creator_id, updater_id, create_time, update_time) VALUES
+INSERT INTO CourseGroup
+	(course_group_id, course_code, group_code, teacher_id, classroomshift_id, total_student_qty, status, creator_id, updater_id, create_time, update_time)
+VALUES
 	(100, '1001002', 'N1', 899, 201, 6, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230')
 SET IDENTITY_INSERT CourseGroup OFF
 GO
 
 -- Dữ liệu danh sách sinh viên nhóm môn học
-INSERT INTO CourseGroupStudentList(course_group_id, student_id, total_absent, ban_yn, status, creator_id, updater_id, create_time, update_time) VALUES
+INSERT INTO CourseGroupStudentList
+	(course_group_id, student_id, total_absent, ban_yn, status, creator_id, updater_id, create_time, update_time)
+VALUES
 	(100, 900, 0, 0, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
 	(100, 901, 0, 0, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
 	(100, 902, 0, 0, 1, 1, 1, '2024-07-28 18:11:02.230', '2024-07-28 18:11:02.230'),
@@ -53,7 +63,9 @@ INSERT INTO CourseGroupStudentList(course_group_id, student_id, total_absent, ba
 GO
 
 -- Dữ liệu điểm danh để test
-INSERT INTO AttendanceRawData(student_id, course_group_id, attend_date, attend_type, attend_time, attend_image_path, creator_id, create_time) VALUES
+INSERT INTO AttendanceRawData
+	(student_id, course_group_id, attend_date, attend_type, attend_time, attend_image_path, creator_id, create_time)
+VALUES
 	(900, 100, '20240728', 0, '06:30', '', 899, '2024-07-28 18:11:02.230'),
 	(901, 100, '20240728', 0, '06:30', '', 899, '2024-07-28 18:11:02.230'),
 	(902, 100, '20240728', 0, '06:30', '', 899, '2024-07-28 18:11:02.230'),
@@ -74,27 +86,48 @@ BEGIN
 	DECLARE @CurrDate DATETIME = GETDATE()
 
 	-- Student in group list
-	SELECT student_id INTO #student FROM CourseGroupStudentList WHERE course_group_id = @course_group_id
+	SELECT student_id
+	INTO #student
+	FROM CourseGroupStudentList
+	WHERE course_group_id = @course_group_id
 
 	-- Get attendant data
-	SELECT * INTO #tmp FROM AttendanceRawData WHERE course_group_id = @course_group_id AND attend_date = @attend_date
+	SELECT *
+	INTO #tmp
+	FROM AttendanceRawData
+	WHERE course_group_id = @course_group_id AND attend_date = @attend_date
 
 	-- Struct
-	SELECT TOP 0 a.* INTO #data FROM Attendance a WHERE 1=0
+	SELECT TOP 0
+		a.*
+	INTO #data
+	FROM Attendance a
+	WHERE 1=0
 
 	-- Insert student with it attendant state
-	INSERT INTO #data(student_id, course_group_id, attend_date, attend_yn, enter_time)
-		SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time FROM #tmp a WHERE a.attend_type IN (0, 1)
-		UNION ALL
-		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00' FROM #student a WHERE NOT EXISTS(SELECT 1 FROM #tmp x WHERE a.student_id = x.student_id)
+	INSERT INTO #data
+		(student_id, course_group_id, attend_date, attend_yn, enter_time)
+			SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time
+		FROM #tmp a
+		WHERE a.attend_type IN (0, 1)
+	UNION ALL
+		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00'
+		FROM #student a
+		WHERE NOT EXISTS(SELECT 1
+		FROM #tmp x
+		WHERE a.student_id = x.student_id)
 
 	UPDATE #data SET leave_time = '00:00', note = '', status = 1, creator_id = @user_id, updater_id = @user_id, create_time = @CurrDate, update_time = @CurrDate
 
 	BEGIN TRY
 		BEGIN TRANSACTION;
 			
-			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1 FROM #data x WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
-			INSERT INTO Attendance SELECT * FROM #data
+			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1
+	FROM #data x
+	WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
+			INSERT INTO Attendance
+	SELECT *
+	FROM #data
 
 		COMMIT TRANSACTION;
 	END TRY
@@ -109,7 +142,8 @@ GO
 -- Lệnh để chạy test
 --EXEC UpdateAttendanceFromRawData 100, '2024-07-29', 1
 --'2024-07-28'
-SELECT * FROM Attendance
+SELECT *
+FROM Attendance
 GO
 
 -- View tạo để lấy dữ liệu (Nếu chỉ join thì không cần viết store á Duy)
@@ -119,44 +153,62 @@ AS
 	FROM Attendance a
 		LEFT JOIN SysUser b ON a.student_id = b.user_id
 GO
-SELECT * FROM vattendance
+SELECT *
+FROM vattendance
 GO
 
 -- Store báo cáo tổng hợp dữ liệu điểm danh
 CREATE PROCEDURE AttendanceSummaryReport
-	@attend_date1 DATE = NULL, -- Filter date from
-	@attend_date2 DATE = NULL, -- Filter date to
-	@student_id INT = 0, -- Filter by student
-	@course_group_id INT = 0 -- Filter by course group
+	@attend_date1 DATE = NULL,
+	-- Filter date from
+	@attend_date2 DATE = NULL,
+	-- Filter date to
+	@student_id INT = 0,
+	-- Filter by student
+	@course_group_id INT = 0
+-- Filter by course group
 AS
 BEGIN
 	SET NOCOUNT ON
 
 	-- Data
-	SELECT a.* INTO #tmp FROM Attendance a WHERE @student_id IN (a.student_id, 0) AND @course_group_id IN (a.course_group_id, 0)
+	SELECT a.*
+	INTO #tmp
+	FROM Attendance a
+	WHERE @student_id IN (a.student_id, 0) AND @course_group_id IN (a.course_group_id, 0)
 		AND (@attend_date1 IS NULL OR a.attend_date >= @attend_date1) AND (@attend_date2 IS NULL OR a.attend_date <= @attend_date2)
 
 	-- Course current total day, attend absent
-	SELECT a.course_group_id, COUNT(DISTINCT a.attend_date) AS total_day INTO #totalDay FROM #tmp a GROUP BY a.course_group_id
+	SELECT a.course_group_id, COUNT(DISTINCT a.attend_date) AS total_day
+	INTO #totalDay
+	FROM #tmp a
+	GROUP BY a.course_group_id
 	SELECT a.course_group_id, a.student_id, SUM(IIF(a.attend_yn = 1, 1, 0)) AS total_attend, SUM(IIF(a.attend_yn = 0, 1, 0)) AS total_absent
-		INTO #totalAttend FROM #tmp a GROUP BY a.course_group_id, a.student_id
+	INTO #totalAttend
+	FROM #tmp a
+	GROUP BY a.course_group_id, a.student_id
 
 	-- Report
 	SELECT 5 AS xorder, a.course_group_id, ISNULL(c.course_code, '') AS course_code, ISNULL(d.classroom_code, '') AS classroom_code, ISNULL(d.shift_code, '') AS shift_code
 			, a.student_id, ISNULL(u.username, '') AS username, ISNULL(u.nickname, '') AS nickname
 			, ISNULL(b.total_day, 0) AS total_day, a.total_attend, a.total_absent
-		INTO #report FROM #totalAttend a
-			LEFT JOIN #totalDay b ON a.course_group_id = b.course_group_id
-			LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
-			LEFT JOIN ClassRoomShift d ON c.classroomshift_id = d.classroomshift_id
-			LEFT JOIN SysUser u ON a.student_id = u.user_id
-			
+	INTO #report
+	FROM #totalAttend a
+		LEFT JOIN #totalDay b ON a.course_group_id = b.course_group_id
+		LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
+		LEFT JOIN ClassRoomShift d ON c.classroomshift_id = d.classroomshift_id
+		LEFT JOIN SysUser u ON a.student_id = u.user_id
+
 	-- Group row
-	INSERT INTO #report(xorder, course_group_id, course_code, classroom_code, shift_code, student_id, username, nickname, total_day, total_attend, total_absent)
-		SELECT 4, a.course_group_id, MAX(a.course_code), MAX(a.classroom_code), MAX(a.shift_code), 0, '', '', 0, 0, 0
-			FROM #report a GROUP BY a.course_group_id
-	
-	SELECT * FROM #report ORDER BY course_group_id, xorder
+	INSERT INTO #report
+		(xorder, course_group_id, course_code, classroom_code, shift_code, student_id, username, nickname, total_day, total_attend, total_absent)
+	SELECT 4, a.course_group_id, MAX(a.course_code), MAX(a.classroom_code), MAX(a.shift_code), 0, '', '', 0, 0, 0
+	FROM #report a
+	GROUP BY a.course_group_id
+
+	SELECT *
+	FROM #report
+	ORDER BY course_group_id, xorder
 	DROP TABLE #tmp, #totalAttend, #report
 END
 GO
@@ -166,8 +218,10 @@ GO
 
 -- Store báo cáo chi tiết dữ liệu điểm danh theo nhóm môn
 CREATE PROCEDURE AttendanceDetailReport
-	@course_group_id INT, -- Filter by course group, not allow blank
-	@student_id INT = 0 -- Filter by student
+	@course_group_id INT,
+	-- Filter by course group, not allow blank
+	@student_id INT = 0
+-- Filter by student
 AS
 BEGIN
 	SET NOCOUNT ON
@@ -176,22 +230,32 @@ BEGIN
 	SELECT @q = '', @xCols = '', @xValues = ''
 
 	-- Data
-	SELECT a.* INTO #tmp FROM Attendance a WHERE a.course_group_id = @course_group_id AND @student_id IN (a.student_id, 0)
+	SELECT a.*
+	INTO #tmp
+	FROM Attendance a
+	WHERE a.course_group_id = @course_group_id AND @student_id IN (a.student_id, 0)
 
 	-- Total day
-	SELECT ROW_NUMBER() OVER(ORDER BY a.attend_date) AS stt, a.attend_date, CAST('' AS VARCHAR(32)) AS xCol, CAST('' AS NVARCHAR(256)) AS xheader INTO #days FROM #tmp a GROUP BY a.attend_date ORDER BY a.attend_date
+	SELECT ROW_NUMBER() OVER(ORDER BY a.attend_date) AS stt, a.attend_date, CAST('' AS VARCHAR(32)) AS xCol, CAST('' AS NVARCHAR(256)) AS xheader
+	INTO #days
+	FROM #tmp a
+	GROUP BY a.attend_date
+	ORDER BY a.attend_date
 	UPDATE #days SET xCol = 'col' + RTRIM(stt), xheader = N'Buổi ' + RTRIM(stt)
-	SELECT @xCols += ', ' + a.xCol, @xValues += ', 0' FROM #days a ORDER BY a.stt
+	SELECT @xCols += ', ' + a.xCol, @xValues += ', 0'
+	FROM #days a
+	ORDER BY a.stt
 
 	-- Report struct
 	SELECT @q = 'select top 0 a.course_group_id, a.student_id' + REPLACE(@xCols, ', ', ', cast(0 as tinyint) as ') + ' into #data from attendance a where 1=0
 	insert into #data (course_group_id, student_id' + @xCols + ') select a.course_group_id, a.student_id' + @xValues + ' from #tmp a group by a.course_group_id, a.student_id'
-	
+
 	-- Update values
 	SELECT @q += '
 	update #data set ' + b.xCol + ' = b.attend_yn from #data a join #tmp b on a.course_group_id = b.course_group_id and a.student_id = b.student_id
 		and b.attend_date = ''' + CONVERT(VARCHAR(8), a.attend_date, 112) + '''
-	' FROM #tmp a JOIN #days b ON a.attend_date = b.attend_date
+	'
+	FROM #tmp a JOIN #days b ON a.attend_date = b.attend_date
 
 	-- Get course and user info
 	SET @q += '
@@ -205,7 +269,8 @@ BEGIN
 	EXEC (@q)
 
 	-- Header info
-	SELECT * FROM #days
+	SELECT *
+	FROM #days
 	DROP TABLE #tmp
 END
 GO
@@ -224,12 +289,13 @@ AS
 	SELECT a.*, ISNULL(b.username, '') AS username, ISNULL(b.nickname, '') AS nickname
 			, ISNULL(c.course_code, '') AS course_code, ISNULL(d.course_name, '') AS course_name
 			, CONVERT(VARCHAR(10), a.attend_date, 103) AS attend_date_dmy, CONVERT(VARCHAR(5), a.attend_date, 103) AS attend_date_dm
-		FROM Attendance a
-			LEFT JOIN SysUser b ON a.student_id = b.user_id
-			LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
-			LEFT JOIN Course d ON c.course_code = d.course_code
+	FROM Attendance a
+		LEFT JOIN SysUser b ON a.student_id = b.user_id
+		LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
+		LEFT JOIN Course d ON c.course_code = d.course_code
 GO
-SELECT * FROM vattendance
+SELECT *
+FROM vattendance
 GO
 
 ALTER PROCEDURE UpdateAttendanceFromRawData
@@ -243,35 +309,60 @@ BEGIN
 	DECLARE @CurrDate DATETIME = GETDATE()
 
 	-- Student in group list
-	SELECT student_id INTO #student FROM CourseGroupStudentList WHERE course_group_id = @course_group_id
+	SELECT student_id
+	INTO #student
+	FROM CourseGroupStudentList
+	WHERE course_group_id = @course_group_id
 
 	-- Get attendant data
-	SELECT * INTO #tmp FROM AttendanceRawData WHERE course_group_id = @course_group_id AND attend_date = @attend_date
+	SELECT *
+	INTO #tmp
+	FROM AttendanceRawData
+	WHERE course_group_id = @course_group_id AND attend_date = @attend_date
 
 	-- Struct
-	SELECT TOP 0 a.* INTO #data FROM Attendance a WHERE 1=0
+	SELECT TOP 0
+		a.*
+	INTO #data
+	FROM Attendance a
+	WHERE 1=0
 
 	-- Insert student with it attendant state
-	INSERT INTO #data(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
-		SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type FROM #tmp a WHERE a.attend_type % 2 = 0
-		UNION ALL
-		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0 FROM #student a WHERE NOT EXISTS(SELECT 1 FROM #tmp x WHERE a.student_id = x.student_id)
+	INSERT INTO #data
+		(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+			SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type
+		FROM #tmp a
+		WHERE a.attend_type % 2 = 0
+	UNION ALL
+		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0
+		FROM #student a
+		WHERE NOT EXISTS(SELECT 1
+		FROM #tmp x
+		WHERE a.student_id = x.student_id)
 
 	-- Update leave time
 	UPDATE #data SET leave_time = ISNULL(b.attend_time, '00:00') FROM #data a LEFT JOIN #tmp b ON a.student_id = b.student_id AND a.course_group_id = b.course_group_id AND a.attend_date = b.attend_date AND a.attend_type = b.attend_type - 1 WHERE a.attend_type % 2 = 0
 
 	-- Insert student who miss start of class
-	INSERT INTO #data(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
-		SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1 FROM #tmp a WITH(NOLOCK)
-			WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1 FROM #tmp x WITH(NOLOCK) WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
+	INSERT INTO #data
+		(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+	SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1
+	FROM #tmp a WITH(NOLOCK)
+	WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1
+		FROM #tmp x WITH(NOLOCK)
+		WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
 
 	UPDATE #data SET note = '', status = 1, creator_id = @user_id, updater_id = @user_id, create_time = @CurrDate, update_time = @CurrDate
 
 	BEGIN TRY
 		BEGIN TRANSACTION;
 			
-			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1 FROM #data x WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
-			INSERT INTO Attendance SELECT * FROM #data
+			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1
+	FROM #data x
+	WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
+			INSERT INTO Attendance
+	SELECT *
+	FROM #data
 
 		COMMIT TRANSACTION;
 	END TRY
@@ -300,7 +391,9 @@ CREATE TABLE SysUserFace
 ALTER TABLE SysUserFace ADD CONSTRAINT PK_SysUserFace PRIMARY KEY CLUSTERED(user_face_id) ON [PRIMARY]
 
 GO
-INSERT INTO SysUserFace(user_id, face_image_path, status, creator_id, updater_id, create_time, update_time) VALUES
+INSERT INTO SysUserFace
+	(user_id, face_image_path, status, creator_id, updater_id, create_time, update_time)
+VALUES
 	(900, 'https://res.cloudinary.com/diges8hpb/image/upload/v1722777332/Attendance_System/52000900_attendanceSystem_0123456789.jpg', 1, 1, 1, '2024-08-11 19:29:19.457', '2024-08-11 19:29:19.457'),
 	(900, 'https://res.cloudinary.com/diges8hpb/image/upload/v1723378237/52000900_attendanceSystem_0123456789_02_vefz5z.jpg', 1, 1, 1, '2024-08-11 19:29:19.457', '2024-08-11 19:29:19.457')
 GO
@@ -308,37 +401,37 @@ GO
 CREATE VIEW vSysUserFace
 AS
 	SELECT a.user_face_id, a.user_id, b.username, b.nickname, a.face_image_path
-		FROM SysUserFace a JOIN SysUser b ON a.user_id = b.user_id
+	FROM SysUserFace a JOIN SysUser b ON a.user_id = b.user_id
 GO
 
 -- 13/08 view All Course Groups Student
 
 CREATE VIEW ViewCourseGroupInfoByStudentId
 AS
-SELECT
-    cg.course_group_id,
-    cg.group_code,
-	cg.course_code,
-	cls.shift_code,
-    cls.classroom_code,
-	cgsl.student_id,
-	cgsl.total_absent,
-	cgsl.ban_yn,
-	cgsl.status,
-	sh.week_from,
-	sh.week_to,
-	sh.week_day,
-    su.nickname,
-    su.avatar_path,
-    c.course_name,
-    cg.semester_year_id
-FROM
-    CourseGroupStudentList cgsl
-    INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
-	INNER JOIN Schedule sh ON cgsl.course_group_id = sh.course_group_id
-    INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
-    INNER JOIN sysUser su ON cg.teacher_id = su.user_id
-    INNER JOIN Course c ON cg.course_code = c.course_code;
+	SELECT
+		cg.course_group_id,
+		cg.group_code,
+		cg.course_code,
+		cls.shift_code,
+		cls.classroom_code,
+		cgsl.student_id,
+		cgsl.total_absent,
+		cgsl.ban_yn,
+		cgsl.status,
+		sh.week_from,
+		sh.week_to,
+		sh.week_day,
+		su.nickname,
+		su.avatar_path,
+		c.course_name,
+		cg.semester_year_id
+	FROM
+		CourseGroupStudentList cgsl
+		INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
+		INNER JOIN Schedule sh ON cgsl.course_group_id = sh.course_group_id
+		INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
+		INNER JOIN sysUser su ON cg.teacher_id = su.user_id
+		INNER JOIN Course c ON cg.course_code = c.course_code;
 Go
 --SELECT * FROM ViewCourseGroupInfoByStudentId WHERE student_id = 65 and semester_year_id = 6
 
@@ -349,13 +442,16 @@ ALTER PROCEDURE UpdateAttendanceFromRawData
 	@course_group_id INT,
 	@attend_date DATE,
 	@user_id INT,
-	@force_update_yn BIT = 0 -- 0. Update if not exists data, 1. Always update
+	@force_update_yn BIT = 0
+-- 0. Update if not exists data, 1. Always update
 AS
 BEGIN
 	SET NOCOUNT ON
 
 	-- Check if attendance data already exists and force_update_yn = 0. Don't update
-	IF @force_update_yn = 0 AND EXISTS(SELECT 1 FROM Attendance x WHERE x.course_group_id = @course_group_id AND x.attend_date = @attend_date) BEGIN
+	IF @force_update_yn = 0 AND EXISTS(SELECT 1
+		FROM Attendance x
+		WHERE x.course_group_id = @course_group_id AND x.attend_date = @attend_date) BEGIN
 		SELECT 'Update cancel' AS message
 		RETURN;
 	END
@@ -363,35 +459,60 @@ BEGIN
 	DECLARE @CurrDate DATETIME = GETDATE()
 
 	-- Student in group list
-	SELECT student_id INTO #student FROM CourseGroupStudentList WHERE course_group_id = @course_group_id
+	SELECT student_id
+	INTO #student
+	FROM CourseGroupStudentList
+	WHERE course_group_id = @course_group_id
 
 	-- Get attendant data
-	SELECT * INTO #tmp FROM AttendanceRawData WHERE course_group_id = @course_group_id AND attend_date = @attend_date
+	SELECT *
+	INTO #tmp
+	FROM AttendanceRawData
+	WHERE course_group_id = @course_group_id AND attend_date = @attend_date
 
 	-- Struct
-	SELECT TOP 0 a.* INTO #data FROM Attendance a WHERE 1=0
+	SELECT TOP 0
+		a.*
+	INTO #data
+	FROM Attendance a
+	WHERE 1=0
 
 	-- Insert student with it attendant state
-	INSERT INTO #data (student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
-		SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type FROM #tmp a WHERE a.attend_type % 2 = 0
+	INSERT INTO #data
+		(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+			SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type
+		FROM #tmp a
+		WHERE a.attend_type % 2 = 0
 	UNION ALL
-		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0 FROM #student a WHERE NOT EXISTS(SELECT 1 FROM #tmp x WHERE a.student_id = x.student_id)
+		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0
+		FROM #student a
+		WHERE NOT EXISTS(SELECT 1
+		FROM #tmp x
+		WHERE a.student_id = x.student_id)
 
 	-- Update leave time
 	UPDATE #data SET leave_time = ISNULL(b.attend_time, '00:00') FROM #data a LEFT JOIN #tmp b ON a.student_id = b.student_id AND a.course_group_id = b.course_group_id AND a.attend_date = b.attend_date AND a.attend_type = b.attend_type - 1 WHERE a.attend_type % 2 = 0
 
 	-- Insert student who miss start of class
-	INSERT INTO #data (student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
-		SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1
-			FROM #tmp a WITH(NOLOCK) WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1 FROM #tmp x WITH(NOLOCK) WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
+	INSERT INTO #data
+		(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
+	SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1
+	FROM #tmp a WITH(NOLOCK)
+	WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1
+		FROM #tmp x WITH(NOLOCK)
+		WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
 
 	UPDATE #data SET note = '', status = 1, creator_id = @user_id, updater_id = @user_id, create_time = @CurrDate, update_time = @CurrDate
 
 	BEGIN TRY
 		BEGIN TRANSACTION;
 			
-			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1 FROM #data x WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
-			INSERT INTO Attendance SELECT * FROM #data
+			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1
+	FROM #data x
+	WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
+			INSERT INTO Attendance
+	SELECT *
+	FROM #data
 
 			SELECT 'Update finish' AS message
 
@@ -406,4 +527,15 @@ BEGIN
 END
 GO
 
--- 16-08 thêm role tổng quản trị
+-- 17-08 view All studen course group
+create view viewAllStudentInCourseGroup
+as
+	select cg.teacher_id, cg.semester_year_id, cg.course_group_id, cg.status,
+		cgsl.student_id, cgsl.total_absent, cgsl.ban_yn,
+		sy.nickname, sy.username, sy.email
+	from
+		CourseGroup as cg
+		inner join CourseGroupStudentList as cgsl on cgsl.course_group_id = cg.course_group_id
+		right join SysUser as sy on cgsl.student_id = sy.user_id
+Go
+

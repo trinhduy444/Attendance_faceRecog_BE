@@ -181,7 +181,7 @@ class CourseController {
         try {
             const { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students, semester_year_id, week_day } = req.body;
             if (!course_code) throw new BadRequestError('course_code is required');
-            console.log("data", { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students,semester_year_id,week_day })
+            console.log("data", { course_code, group_code, teacher_id, total_student_qty, shift_code, classroom_code, students, semester_year_id, week_day })
             await classRoomModel.setRoomNotEmpty(shift_code, classroom_code, user_id).then(async (classroomshift_id) => {
                 const usersId = await userModel.getUserIdFromList(students)
                 await courseModel.createCourseGroup(classroomshift_id, course_code, group_code, teacher_id, total_student_qty, usersId, user_id, semester_year_id, week_day)
@@ -241,12 +241,12 @@ class CourseController {
     };
     getAllCoursesGroupByStudentId = async (req, res) => {
         const { semester_year_id } = req.query;
-        const {course_group_id} = req.body;
+        const { course_group_id } = req.body;
         console.log(course_group_id);
         const student_id = req.user.user_id;
         if (!student_id) throw new ForbiddenError("Pls login required")
         try {
-            const data = await courseModel.getCourseGroupByStudentId(student_id,semester_year_id,course_group_id);
+            const data = await courseModel.getCourseGroupByStudentId(student_id, semester_year_id, course_group_id);
             return res.status(200).json({
                 status: 200,
                 message: "Get Course Group Successfully",
@@ -373,6 +373,61 @@ class CourseController {
                 message: "Create Student List into Course Group successfully",
             })
         } catch (err) {
+            console.log(err)
+            return res.status(400).json({
+                status: 400,
+                message: "Somthing went wrong!"
+            })
+        }
+
+    }
+    viewAllStudentCourseGroup = async (req, res) => {
+        if (req.user.role_id !== 1) throw new ForbiddenError("You are not allowed to view data")
+        let { status, teacher_id, course_group_id } = req.query;
+        if (!course_group_id) {
+            return res.status(403).json({
+                status: 403,
+                message: "Please enter a Course Group ID"
+            })
+        }
+        try {
+
+            const data = await courseModel.viewAllStudentCourseGroup(status, teacher_id, course_group_id)
+            return res.status(200).json({
+                status: 200,
+                message: "Get All Student In Course Group successfully",
+                metadata: data
+            })
+        }
+        catch (err) {
+            console.log(err)
+            return res.status(400).json({
+                status: 400,
+                message: "Somthing went wrong!"
+            })
+        }
+
+    }
+    viewAllStudentCourseGroupByTeacher = async (req, res) => {
+        if (req.user.role_id !== 2) throw new ForbiddenError("You are not allowed to view data")
+        let { status, course_group_id } = req.query;
+
+        if (!course_group_id) {
+            return res.status(403).json({
+                status: 403,
+                message: "Please enter a semester year ID"
+            })
+        }
+        try {
+
+            const data = await courseModel.viewAllStudentCourseGroup(status, req.user.user_id, course_group_id)
+            return res.status(200).json({
+                status: 200,
+                message: "Get All Student In Course Group successfully",
+                metadata: data
+            })
+        }
+        catch (err) {
             console.log(err)
             return res.status(400).json({
                 status: 400,

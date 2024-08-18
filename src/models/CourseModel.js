@@ -402,17 +402,17 @@ class CourseModel {
             })
         })
     }
-    getCourseGroupByStudentId(student_id, semester_year_id,course_group_id) {
+    getCourseGroupByStudentId(student_id, semester_year_id, course_group_id) {
         return new Promise((resolve, reject) => {
             // const q = 'EXEC GetCourseGroupInfoByStudentId @student_id = ?'
             let q = 'SELECT * FROM ViewCourseGroupInfoByStudentId WHERE student_id = ?'
             let params = [student_id]
-            
+
             if (semester_year_id) {
                 q += ` and semester_year_id = ?`;
                 params.push(semester_year_id);
             }
-            if(course_group_id){
+            if (course_group_id) {
                 q += ` and course_group_id = ?`;
                 params.push(course_group_id);
             }
@@ -524,6 +524,32 @@ class CourseModel {
                     reject(err);
                 } else {
                     resolve(result);
+                }
+            });
+        });
+    }
+    // View All Student in Course Group
+    viewAllStudentCourseGroup(status, teacher_id, course_group_id) {
+
+        return new Promise((resolve, reject) => {
+            let q = `select * from viewAllStudentInCourseGroup where course_group_id = ?`;
+            let params = [course_group_id];
+
+            if (status) {
+                status = sql.Int(status);
+                q += ` and status = ?`
+                params.push(status);
+            }
+            if (teacher_id) {
+                teacher_id = sql.Int(teacher_id);
+                q += ` and teacher_id = ?`
+                params.push(teacher_id);
+            }
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
                 }
             });
         });
