@@ -39,4 +39,6 @@ router.post('/uploadimage', authMiddleware.isLogin,upload.single('image'), atten
 //Check student in CG
 router.post('/checkStatusStudentInCourseGroup', authMiddleware.isLogin, attendanceController.checkStatusStudentInCourseGroup)
 
+// Update Toltal Absent and sendMail 
+router.post('/updateTotalAbsentAllCourseGroup',authMiddleware.isLogin,attendanceController.updateTotalAbsentAllCourseGroup)
 module.exports = router;

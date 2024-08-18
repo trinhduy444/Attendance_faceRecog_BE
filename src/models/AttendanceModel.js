@@ -1,7 +1,7 @@
 const sql = require('msnodesqlv8');
 const db = require('../utils/SqlConnection');
 const sendMail = require('../config/nodeMailerConfig');
-const { warningMailCG, banMailCG } = require('../helpers/mailContentHelper')
+const { warningMailCG, banMailCG, multiWarningMailCG, multiBanMailCG } = require('../helpers/mailContentHelper')
 class AttendanceRawDataModel {
     // Get list of attendance raw data
     getAttendanceRawDatas(studentId, courseGroupId, attendDate, attendType) {
@@ -69,7 +69,7 @@ class AttendanceRawDataModel {
     // Update attendance raw data image path
     updateAttendanceRawDataImagePath(attendanceRawData) {
         let { studentId, courseGroupId, attendDate, attendType, attendImagePath } = attendanceRawData;
-        
+
         // Convert string to date
         attendDate = attendDate == null ? null : new Date(attendDate);
 
@@ -121,7 +121,7 @@ class AttendanceRawDataModel {
         attendType = sql.TinyInt(attendType);
         attendImagePath = sql.VarChar(attendImagePath);
         userId = sql.Int(userId);
-        
+
         return new Promise((resolve, reject) => {
             // Gọi hàm kiểm tra trước khi thêm mới dữ liệu
             this.checkStudentAttendance(studentId, courseGroupId, attendType)
@@ -340,7 +340,59 @@ class AttendanceRawDataModel {
             });
         });
     }
-    
+
+    sendMailAllStudentAfterUpdate(courseGroupId) {
+        courseGroupId = sql.Int(courseGroupId);
+        return new Promise((resolve, reject) => {
+            const q = "EXEC sp_CheckAttendanceStatus ?";
+            const params = [courseGroupId];
+            db.query(q, params, async (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    const banEmails = rows
+                        .filter(student => student.type === 'ban')
+                        .map(student => student.student_email);
+
+                    const warningEmails = rows
+                        .filter(student => student.type === 'warning')
+                        .map(student => student.student_email);
+
+                    const course = {
+                        course_name: rows[0]?.course_name,
+                        course_group: rows[0]?.group_code
+                    }
+                    if (banEmails.length > 0) {
+                        await this.handleSendMultiMail(banEmails, 'ban', course);
+                    }
+                    if (warningEmails.length > 0) {
+                        await this.handleSendMultiMail(warningEmails, 'warning', course);
+                    }
+                    resolve(true);
+                }
+            });
+        });
+    }
+    handleSendMultiMail = async (receivedArray, type, course) => {
+        if (!Array.isArray(receivedArray)) {
+            return false;
+        }
+        let title;
+        let content;
+        if (type === 'ban') {
+            title = 'CẤM THI. Cảnh báo sinh viên bị cấm thi!'
+            content = multiBanMailCG(course.course_name, course.course_group)
+            await sendMail(title, content, receivedArray)
+            return true
+        } else if (type === 'warning') {
+            title = 'Cảnh báo sinh viên nghỉ học nhiều!'
+            content = multiWarningMailCG(course.course_name, course.course_group)
+            await sendMail(title, content, receivedArray)
+            return true
+        } else {
+            return false;
+        }
+    }
     handleSendMail = async (result) => {
         let title;
         let content;
@@ -348,7 +400,7 @@ class AttendanceRawDataModel {
         if (result.type == 'no') {
             return false;
         } else if (result.type == 'warning') {
-            console.log('here')
+            // console.log('here')
             title = `Cảnh báo sinh viên ${result?.student_name} nghỉ học nhiều`;
             content = warningMailCG(result)
             await sendMail(title, content, result.student_email)

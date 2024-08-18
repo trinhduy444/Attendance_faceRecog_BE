@@ -400,6 +400,7 @@ class CourseModel {
         })
     }
     getCourseGroupByStudentId(student_id, semester_year_id, course_group_id) {
+        // console.log("adad", student_id, semester_year_id, course_group_id)
         return new Promise((resolve, reject) => {
             // const q = 'EXEC GetCourseGroupInfoByStudentId @student_id = ?'
             let q = 'SELECT * FROM ViewCourseGroupInfoByStudentId WHERE student_id = ?'
@@ -565,6 +566,20 @@ class CourseModel {
             db.query(q, params, (err, rows, output) => {
                 if (err) reject(err);
                 resolve();
+            });
+        });
+    }
+    // Update all student total absent
+    updateAllTotalAbsent(courseGroupId) {
+        courseGroupId = sql.Int(courseGroupId);
+
+        const q = 'exec UpdateTotalAbsent ?';
+        const params = [courseGroupId];
+
+        return new Promise((resolve, reject) => {
+            db.query(q, params, (err, rows, output) => {
+                if (err) reject(err);
+                resolve(true);
             });
         });
     }

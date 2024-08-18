@@ -242,7 +242,7 @@ class CourseController {
     getAllCoursesGroupByStudentId = async (req, res) => {
         const { semester_year_id } = req.query;
         const { course_group_id } = req.body;
-        console.log(course_group_id);
+        // console.log(semester_year_id,course_group_id);
         const student_id = req.user.user_id;
         if (!student_id) throw new ForbiddenError("Pls login required")
         try {

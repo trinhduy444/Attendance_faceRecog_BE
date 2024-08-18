@@ -97,23 +97,23 @@ class AttendanceController {
         forceUpdate = forceUpdate || false;
 
         attendanceModel.updateAttendanceFromRawData(courseGroupId, attendDate, req.user.user_id, forceUpdate)
-        .then(() => {
-            courseModel.updateTotalAbsent(courseGroupId, '')
             .then(() => {
-                return res.status(200).json({
-                    'status': 200,
-                    'message': 'Update attendance data from raw data success.',
+                courseModel.updateTotalAbsent(courseGroupId, '')
+                    .then(() => {
+                        return res.status(200).json({
+                            'status': 200,
+                            'message': 'Update attendance data from raw data success.',
+                            'data': {}
+                        });
+                    });
+            }).catch((err) => {
+                console.error(err);
+                return res.status(500).json({
+                    'status': 500,
+                    'message': err,
                     'data': {}
                 });
             });
-        }).catch((err) => {
-            console.error(err);
-            return res.status(500).json({
-                'status': 500,
-                'message': err,
-                'data': {}
-            });
-        });
     }
 
     getAttendance(req, res) {
@@ -169,13 +169,13 @@ class AttendanceController {
         attendanceModel.updateAttendance(oldKey, attendance, req.user.user_id)
             .then(() => {
                 courseModel.updateTotalAbsent(courseGroupId, studentId.toString())
-                .then(() => {
-                    return res.status(200).json({
-                        'status': 200,
-                        'message': 'Update attendance success.',
-                        'data': {}
+                    .then(() => {
+                        return res.status(200).json({
+                            'status': 200,
+                            'message': 'Update attendance success.',
+                            'data': {}
+                        });
                     });
-                });
             }).catch((err) => {
                 return res.status(500).json({
                     'status': 500,
@@ -195,13 +195,13 @@ class AttendanceController {
         attendanceModel.deleteAttendance(key)
             .then(() => {
                 courseModel.updateTotalAbsent(courseGroupId, studentId == -1 ? '' : studentId.toString())
-                .then(() => {
-                    return res.status(200).json({
-                        'status': 200,
-                        'message': 'Delete attendance success.',
-                        'data': {}
+                    .then(() => {
+                        return res.status(200).json({
+                            'status': 200,
+                            'message': 'Delete attendance success.',
+                            'data': {}
+                        });
                     });
-                });
             }).catch((err) => {
                 return res.status(500).json({
                     'status': 500,
@@ -257,7 +257,7 @@ class AttendanceController {
                 });
             });
     }
-    
+
     uploadImage = async (req, res) => {
         try {
             const { user_id, course_group_id, date, type } = req.body;
@@ -307,7 +307,7 @@ class AttendanceController {
                 .then(() => {
                     return res.status(201).json({ link_anh: result.secure_url });
                 }).catch((err) => {
-                    return res.status(500).json({ message: 'Lỗi khi upload ảnh', error: err });        
+                    return res.status(500).json({ message: 'Lỗi khi upload ảnh', error: err });
                 });
         } catch (error) {
             return res.status(500).json({ message: 'Lỗi khi upload ảnh', error: error.message });
@@ -316,12 +316,38 @@ class AttendanceController {
     checkStatusStudentInCourseGroup = async (req, res) => {
         try {
             const { courseGroupId, studentId } = req.body;
-            
+
             const result = await attendanceModel.checkStatusStudentInCourseGroup(courseGroupId, studentId)
             return res.status(200).json({ metadata: result })
         } catch (error) {
             console.error(error)
             res.status(500).json({ message: 'Lỗi khi upload ảnh', error: error.message });
+        }
+    }
+    updateTotalAbsentAllCourseGroup = async (req, res) => {
+        try {
+            const { course_group_id, isSendMail } = req.body;
+            // console.log("body", course_group_id, isSendMail)
+            if (!course_group_id || course_group_id === 'none') throw new BadRequestError("Please enter a course group ID");
+            const role_id = req.user.role_id
+            if (role_id !== 1 && role_id !== 2) throw new ForbiddenError("You not allowed to access this endpoint")
+            await courseModel.updateAllTotalAbsent(course_group_id).then(async (result) => {
+                if (result && isSendMail) {
+                    const result2 = await attendanceModel.sendMailAllStudentAfterUpdate(course_group_id)
+                    if (result2) {
+                        return res.status(200).json({ status: 200, message: "Update Total absent and send mail successfully" })
+                    } else {
+                        return res.status(203).json({ status: 203, message: "Update Total absent and send mail fail" })
+
+                    }
+                } else {
+                    return res.status(200).json({ status: 200, message: "Update Total absent successfully" })
+                }
+            })
+
+        } catch (error) {
+            console.error(error)
+            res.status(500).json({ status: 500, message: 'Lỗi khi hoàn tất điều chỉnh điểm danh', error: error.message });
         }
     }
 }
