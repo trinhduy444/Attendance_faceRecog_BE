@@ -687,3 +687,35 @@ BEGIN
 	DROP TABLE #info
 END
 GO
+
+-- 21/08/2024 Update complain, attendance state change request
+GO
+CREATE TABLE AttendanceRequest
+(
+	[student_id] INT NOT NULL,
+	[course_group_id] INT NOT NULL,
+	[attend_date] DATE NOT NULL,
+	[attend_type] TINYINT NOT NULL,
+	[proof_image_path] VARCHAR(128) NULL,
+	[file_link] VARCHAR(256) NULL,
+	[content] NVARCHAR(2048) NULL, -- Content of request
+	[response] NVARCHAR(2048) NULL, -- Aprrover response to request
+	[request_type] TINYINT, --0: Attendance
+	[status] TINYINT NULL, -- 0: Not use, 1: Pending, 2: Approved, 9: Cancel
+	[creator_id] INT NULL,
+	[updater_id] INT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL
+)
+ALTER TABLE AttendanceRequest ADD CONSTRAINT PK_AttendanceRequest PRIMARY KEY CLUSTERED(student_id, course_group_id, attend_date, attend_type) ON [PRIMARY]
+ALTER TABLE AttendanceRequest ADD CONSTRAINT FK_AttendanceRequest_UserStudent FOREIGN KEY(student_id) REFERENCES SysUser(user_id)
+ALTER TABLE AttendanceRequest ADD CONSTRAINT FK_AttendanceRequest_CourseGroup FOREIGN KEY(course_group_id) REFERENCES CourseGroup(course_group_id)
+GO
+
+GO
+CREATE VIEW vAttendanceRequest
+AS
+	SELECT a.*, ISNULL(b.teacher_id, 0) AS teacher_id 
+		FROM AttendanceRequest a
+			LEFT JOIN CourseGroup b ON a.course_group_id = b.course_group_id
+GO

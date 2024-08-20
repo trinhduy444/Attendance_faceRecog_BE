@@ -504,55 +504,40 @@ select *
 from AllSchedules
 where student_id = 65 and status = 1
 
-
 -- Update 12/08 Kiem tra tinh trạng điểm danh của studen
 Go
 CREATE PROCEDURE sp_CheckAttendanceStatus
 	@course_group_id INT,
-	@student_id INT
+	@student_id INT = 0
 AS
 BEGIN
-	DECLARE @total_absent DECIMAL(19, 5);
-	DECLARE @total_shift INT;
-	DECLARE @absence_ratio DECIMAL(19, 5);
-	DECLARE @type NVARCHAR(10);
+	DECLARE @total_shift NUMERIC(19, 5) = 0
 
-	-- Lấy giá trị total_absent từ bảng CourseGroupStudentList
-	SELECT @total_absent = c.total_absent
-	FROM CourseGroupStudentList c
-	WHERE c.course_group_id = @course_group_id AND c.student_id = @student_id;
+	-- Get course total shift
+	SELECT @total_shift = a.total_shift FROM Schedule a WHERE a.course_group_id = @course_group_id
+	IF @total_shift = 0 SELECT @total_shift = COUNT(1) FROM Attendance a WHERE a.course_group_id = @course_group_id GROUP BY a.course_group_id, a.student_id
 
-	-- Lấy tổng số buổi học từ bảng Schedule
-	SELECT @total_shift = s.total_shift
-	FROM Schedule s
-	WHERE s.course_group_id = @course_group_id;
+	-- Get course group and student data
+	SELECT a.course_group_id, a.student_id, a.total_absent, IIF(@total_shift = 0, 0, a.total_absent / @total_shift) AS absent_ratio, CAST('' AS VARCHAR(32)) AS type
+		INTO #info FROM CourseGroupStudentList a WHERE a.course_group_id = @course_group_id AND @student_id IN (a.student_id, 0)
 
-	-- Tính tỷ lệ vắng mặt
-	SET @absence_ratio = @total_absent / @total_shift;
+	-- Identify warning type
+	UPDATE #info SET type = CASE
+		WHEN absent_ratio > 0.2 THEN 'ban'
+		WHEN absent_ratio > 0.1 THEN 'warning'
+		ELSE 'no' END
 
-	-- Xác định loại cảnh báo
-	IF @absence_ratio > 0.2
-        SET @type = 'ban';
-    ELSE IF @absence_ratio > 0.1
-        SET @type = 'warning';
-    ELSE
-        SET @type = 'no';
+	-- Get course group and student info
+	SELECT a.course_group_id, ISNULL(b.course_code, '') AS course_code, ISNULL(b.group_code, '') AS group_code, ISNULL(c.course_name, '') AS course_name
+			, a.student_id, ISNULL(su.email, '') AS student_email, ISNULL(su.nickname, '') AS student_name, a.total_absent, a.absent_ratio, a.type
+		FROM #info a JOIN CourseGroup b ON a.course_group_id = b.course_group_id AND b.status = 1
+			LEFT JOIN Course c ON b.course_code = c.course_code
+			LEFT JOIN SysUser su ON a.student_id = su.user_id
+		WHERE a.type <> 'no'
+	DROP TABLE #info
+END
+GO
 
-	-- Trả về thông tin cần thiết từ ActiveCourseGroups và sysUser
-	SELECT
-		@type AS type,
-		ac.course_code,
-		ac.group_code,
-		ac.course_name,
-		su.email AS student_email,
-		su.nickname as student_name
-	FROM
-		ActiveCourseGroups ac
-		INNER JOIN
-		sysUser su ON su.user_id = @student_id
-	WHERE 
-        ac.course_group_id = @course_group_id;
-END;
 --EXEC sp_CheckAttendanceStatus @course_group_id = 143, @student_id = 65;
 -- 13/08 Phuoc
 GO
@@ -610,6 +595,7 @@ as
 		right join SysUser as sy on cgsl.student_id = sy.user_id
 		right join Faculty as fa on sy.faculty_id = fa.faculty_id
 go
+
 -- Function convert string to table
 CREATE FUNCTION StringToTable(@s NVARCHAR(4000), @split CHAR(1))
 RETURNS @table TABLE(stt INT IDENTITY(1, 1),
@@ -646,29 +632,38 @@ GO
 -- Store cập nhật tổng số buổi vắng của sinh viên
 CREATE PROCEDURE UpdateTotalAbsent
 	@course_group_id INT,
-	@user_id_list VARCHAR(256) = ''
--- Chuỗi danh sách student_id muốn cập nhật cách nhau bằng dấu phẩy
+	@user_id_list VARCHAR(256) = '' -- Chuỗi danh sách student_id muốn cập nhật cách nhau bằng dấu phẩy
 AS
 BEGIN
 	SET NOCOUNT ON
-
+	DECLARE @total_shift NUMERIC(19, 5) = 0
+	
 	-- Key
-	SELECT a.val AS user_id
-	INTO #userlist
-	FROM dbo.StringToTable(@user_id_list, ',') a
-	GROUP BY a.val
+	SELECT a.val AS user_id INTO #userlist FROM dbo.StringToTable(@user_id_list, ',') a GROUP BY a.val
+	
+	-- Get course total shift
+	SELECT @total_shift = a.total_shift FROM Schedule a WHERE a.course_group_id = @course_group_id
+	IF @total_shift = 0 SELECT @total_shift = COUNT(1) FROM Attendance a WHERE a.course_group_id = @course_group_id GROUP BY a.course_group_id, a.student_id
 
 	-- Get total absent
-	SELECT a.course_group_id, a.student_id, SUM(IIF(a.attend_yn = 0, 1, 0)) AS total_absent
-	INTO #total
-	FROM Attendance a
-	WHERE a.course_group_id = @course_group_id AND (@user_id_list = '' OR EXISTS(SELECT 1
-		FROM #userlist x
-		WHERE a.student_id = x.user_id))
-	GROUP BY a.course_group_id, a.student_id
+	SELECT a.course_group_id, a.student_id, SUM(IIF(a.attend_yn = 0, 1, 0)) AS total_absent, CAST(0 AS NUMERIC(19, 5)) AS absent_ratio
+		INTO #total FROM Attendance a
+		WHERE a.course_group_id = @course_group_id AND (@user_id_list = '' OR EXISTS(SELECT 1 FROM #userlist x WHERE a.student_id = x.user_id))
+		GROUP BY a.course_group_id, a.student_id
+
+	UPDATE #total SET absent_ratio = IIF(@total_shift = 0, 0, total_absent / @total_shift)
 
 	-- Update
-	UPDATE CourseGroupStudentList SET total_absent = b.total_absent FROM CourseGroupStudentList a JOIN #total b ON a.course_group_id = b.course_group_id AND a.student_id = b.student_id
+	UPDATE CourseGroupStudentList SET total_absent = b.total_absent, ban_yn = IIF(b.absent_ratio > 0.2, 1, 0)
+		FROM CourseGroupStudentList a JOIN #total b ON a.course_group_id = b.course_group_id AND a.student_id = b.student_id
+
 	DROP TABLE #userlist, #total
 END
+GO
+
+CREATE VIEW vAttendanceRequest
+AS
+	SELECT a.*, ISNULL(b.teacher_id, 0) AS teacher_id 
+		FROM AttendanceRequest a
+			LEFT JOIN CourseGroup b ON a.course_group_id = b.course_group_id
 GO
