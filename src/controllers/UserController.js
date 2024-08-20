@@ -111,7 +111,7 @@ class UserController {
             const { username } = req.body;
             if (!username) throw new ForbiddenError("Username must be provided")
             const result = await userModel.checkExistUser(username);
-            if (!res) {
+            if (!result) {
                 return res.status(200).json({ status: 200, message: "Get Image and nickname Successfully", metadata: result })
 
             }

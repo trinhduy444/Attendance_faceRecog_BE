@@ -138,8 +138,14 @@ class AuthController {
     checkPasswordValid(req, res) {
         const user_id = req.user.user_id;
         const password = req.body.password;
+        if (!password) {
+            return res.status(403).json({
+                status: 403,
+                message: "Please enter a password."
+            });
+        }
         if (!user_id) {
-            return res.json({
+            return res.status(401).json({
                 status: 401,
                 message: "User not authorized",
             });
@@ -147,7 +153,7 @@ class AuthController {
         userModel.getUserById(user_id).then(async (user) => {
             const isMatchPassword = await bcrypt.compare(password, user[0].password);
             if (!isMatchPassword) {
-                return res.json({
+                return res.status(401).json({
                     status: 401,
                     message: "Wrong password",
                 });
