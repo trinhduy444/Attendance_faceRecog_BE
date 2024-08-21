@@ -3,6 +3,7 @@ const router = express.Router();
 const passport = require('../config/Passport-config');
 const session = require('express-session');
 
+// Declare Router
 const userRouterV1 = require('./v1/UserRouter');
 const authRouterV1 = require('./v1/AuthRouter');
 const courseRouterV1 = require('./v1/CourseRouter');
@@ -12,9 +13,9 @@ const postRouterV1 = require('./v1/PostRouter');
 const attendanceRouterV1 = require('./v1/AttendanceRouter');
 const commentRouterV1 = require('./v1/CommentRouter');
 const notifyRouterV1 = require('./v1/NotifyRouter');
-const teacherRouterV1 = require('./v1/TeacherRouter');
-
 const scheduleRouterV1 = require('./v1/ScheduleRouter');
+const teacherRouterV1 = require('./v1/TeacherRouter');
+const requestRouterV1 = require('./v1/RequestRouter');
 
 router.use(session({
     secret: 'admin123',
@@ -39,6 +40,6 @@ router.use('/v1/comment', commentRouterV1)
 router.use('/v1/notify', notifyRouterV1);
 router.use('/v1/schedule', scheduleRouterV1);
 router.use('/v1/teacher', teacherRouterV1);
-
+router.use('/v1/requests', requestRouterV1);
 
 module.exports = router;

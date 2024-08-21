@@ -374,9 +374,10 @@ ALTER TABLE SysUserFace ADD CONSTRAINT PK_SysUserFace PRIMARY KEY CLUSTERED(user
 GO
 CREATE TABLE AttendanceRequest
 (
+	[request_id] INT IDENTITY(1, 1) NOT NULL,
 	[student_id] INT NOT NULL,
 	[course_group_id] INT NOT NULL,
-	[attend_date] DATE NOT NULL,
+	[attend_date] DATE NULL,
 	[attend_type] TINYINT NOT NULL,
 	[proof_image_path] VARCHAR(128) NULL,
 	[file_link] VARCHAR(256) NULL,
