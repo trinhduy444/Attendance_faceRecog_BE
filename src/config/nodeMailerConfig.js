@@ -31,5 +31,27 @@ const sendMail = async (title, content, emailReceived) => {
         console.error('Error sending email: ', error);
     }
 };
+const sendMail2 = async (title, content, emailReceived, imageUrl, attendanceId) => {
+    try {
+        const mailOptions = {
+            from: process.env.NODEMAILER_USER || 'thawponsgatcant@gmail.com',
+            to: Array.isArray(emailReceived) ? emailReceived.join(', ') : emailReceived,
+            subject: title,
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+                    <h2>${title}</h2>
+                    <p>${content}</p>
+                    <img src="https://res.cloudinary.com/diges8hpb/image/upload/v1723454158/sclogo_pit5fd.jpg" alt="Logo" style="width: 150px; height: auto;" />
+                </div>
+            `,
+        };
+
+        // Gửi email
+        const info = await transporter.sendMail(mailOptions);
+        console.log('Email sent: ' + info.response);
+    } catch (error) {
+        console.error('Error sending email: ', error);
+    }
+};
 
 module.exports = sendMail;
