@@ -7,6 +7,7 @@ const createKeys = require('../utils/createKeyUtil');
 const { createTokenPair } = require('../auth/authUtil');
 const { getInfoData } = require('../utils/index');
 const isPasswordValid = require('../utils/checkPasswordUtil');
+const JWT = require("jsonwebtoken");
 class AuthController {
     login = async (req, res) => {
         var { username, password } = req.body;
@@ -188,6 +189,27 @@ class AuthController {
             status: 201,
             message: "Change password successfully"
         })
+    }
+    refreshAccessToken = async (req, res) => {
+        const { refreshToken } = req.cookies;
+        if (!refreshToken) throw new BadRequestError("No RT in cookie");
+
+        const keyStore = await keyStoreModel.findKeyStoreByRefreshTokenUsing(refreshToken)
+        if (!keyStore) throw new BadRequestError("KeyStore save refresh token dost not exist");
+
+        const { privateKey, publicKey } = keyStore;
+        const payload = JWT.verify(refreshToken, privateKey);
+        if (!payload) throw new BadRequestError("Verify Token Error");
+        const { user_id, nickname, email, phone, role_id, username } = payload;
+
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await createTokenPair(
+            { user_id, nickname, email, phone, role_id, username }, privateKey, publicKey
+        )
+        const result = await keyStoreModel.updateRefreshTokenUsing(user_id, newRefreshToken);
+        if (!result) throw new BadRequestError("Refresh token cannot be updated");
+        
+        res.cookie("refreshToken", newRefreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+        return res.status(200).json({ user: payload, message: 'Refresh Token Successfully', newAT: newAccessToken })
     }
     // Temp code
     temp() {

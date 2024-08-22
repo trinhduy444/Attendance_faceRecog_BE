@@ -26,4 +26,5 @@ const multiBanMailCG = function (course_name, course_group) {
 }
 
 
+
 module.exports = { warningMailCG, banMailCG, multiWarningMailCG, multiBanMailCG }

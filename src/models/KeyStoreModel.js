@@ -50,6 +50,24 @@ class KeyStoreModel {
             });
         });
     }
+    findKeyStoreByRefreshTokenUsing(refreshTokenUsing) {
+        const q = 'SELECT * from keyStore where refreshTokenUsing = ?';
+        return new Promise((resolve, reject) => {
+            db.query(q, [refreshTokenUsing], (err, rows) => {
+                if (err) reject(err);
+                resolve(rows[0]);
+            });
+        });
+    }
+    updateRefreshTokenUsing(user_id, newRefreshToken) {
+        const q = 'UPDATE keyStore set refreshTokenUsing = ? , update_time = getDate() where user_id = ?';
+        return new Promise((resolve, reject) => {
+            db.query(q, [newRefreshToken, user_id], (err, rows) => {
+                if (err) reject(false);
+                resolve(true);
+            });
+        });
+    }
 }
 
 module.exports = new KeyStoreModel();

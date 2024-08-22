@@ -37,4 +37,7 @@ router.post('/isTeacher', authMiddleWare.isLogin, authController.isTeacher)
 //isAdminOrTeacher
 router.post('/isAdminOrTeacher', authMiddleWare.isLogin, authController.isAdminOrTeacher)
 
+// Refresh Token 
+router.post('/refreshAccessToken',authMiddleWare.isLogin, authController.refreshAccessToken)
+
 module.exports = router;
