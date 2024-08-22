@@ -2,6 +2,38 @@ const sql = require('msnodesqlv8');
 const db = require('../utils/SqlConnection');
 
 class RequestModel {
+    getAllRequests() {
+        return new Promise((resolve, reject) => {
+            const q = 'select a.* from vAttendanceRequest a order by a.create_time desc'
+            db.query(q, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows)
+                }
+            })
+        });
+    }
+
+    getAllRequestsByActiveUser(user_id, role_id) {
+        return new Promise((resolve, reject) => {
+
+            let q = `select a.* from vAttendanceRequest a order by a.create_time desc`;
+
+            if (role_id == 2) q = `select a.* from vAttendanceRequest a where a.teacher_id = ? order by a.create_time desc`;
+            if (role_id == 3) q = `select a.* from vAttendanceRequest a where a.student_id = ? order by a.create_time desc`;
+
+            const params = [user_id]
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows)
+                }
+            })
+        });
+    }
+
     createAttendanceRequest(request, user_id) {
         let { student_id, course_group_id, attend_date, attend_type, proof_image_path, file_link, content, response, request_type, status } = request;
 
@@ -36,6 +68,28 @@ class RequestModel {
             });
         });
     }
+
+    // updateAttendanceRequest(request_id, status, user_id) {
+    //     request_id = sql.Int(request_id);
+    //     status = sql.TinyInt(status);
+    //     user_id = sql.Int(user_id);
+
+    //     return new Promise((resolve, reject) => {
+    //         const q = `
+    //             INSERT INTO AttendanceRequest (student_id, course_group_id, attend_date, attend_type, proof_image_path, file_link, content, response, request_type, status, creator_id, updater_id, create_time, update_time)
+    //             OUTPUT Inserted.*
+    //             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE(), GETDATE());`;
+    //         const params = [student_id, course_group_id, attend_date, attend_type, proof_image_path, file_link, content, response, request_type, status, user_id, user_id];
+
+    //         db.query(q, params, (err, rows) => {
+    //             if (err) {
+    //                 reject(err);
+    //             } else {
+    //                 resolve(rows[0]);
+    //             }
+    //         });
+    //     });
+    // }
 
     // createReceived(type, valueType, notify_id, creator_id) {
     //     return new Promise((resolve, reject) => {
@@ -95,18 +149,7 @@ class RequestModel {
     //     });
     // }
 
-    // getAllNotifications() {
-    //     return new Promise((resolve, reject) => {
-    //         const q = 'Select sn.*,su.nickname from sysNotify as sn left join sysUser as su on su.user_id = sn.sender_id ORDER BY sn.create_time DESC '
-    //         db.query(q, (err, rows) => {
-    //             if (err) {
-    //                 reject(err);
-    //             } else {
-    //                 resolve(rows)
-    //             }
-    //         })
-    //     });
-    // }
+    
     // hideNotification(notify_id, updater_id) {
     //     return new Promise((resolve, reject) => {
     //         const q = 'update SysNotify set status = 0, updater_id = ?, update_time = getDate() where notify_id = ?'
@@ -135,25 +178,7 @@ class RequestModel {
     //         })
     //     })
     // }
-    // getAllNotificationsActiveByUser(receiver_id) {
-    //     return new Promise((resolve, reject) => {
-    //         const q = `SELECT sn.*, su.nickname, nu.status AS nu_status
-    //             FROM NotifyUser AS nu
-    //             RIGHT JOIN SysNotify AS sn ON nu.notify_id = sn.notify_id
-    //             LEFT JOIN sysUser AS su ON sn.sender_id = su.user_id
-    //             WHERE sn.status = 1 and nu.receiver_id = ?
-    //             ORDER BY 
-    //                 sn.create_time DESC;`
-    //         const params = [receiver_id]
-    //         db.query(q, params, (err, rows) => {
-    //             if (err) {
-    //                 reject(err);
-    //             } else {
-    //                 resolve(rows)
-    //             }
-    //         })
-    //     });
-    // }
+
     // viewNotification(notify_id, user_id) {
     //     return new Promise((resolve, reject) => {
     //         console.log("vô")

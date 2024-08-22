@@ -31,23 +31,25 @@ class RequestController {
         }
     };
 
-    // getAllNotificationsActiveByUser = async (req, res) => {
-    //     try {
-    //         const user_id = req.user.user_id;
-    //         if (!user_id) throw new ForbiddenError("Please login to receive notifications");
-    //         const notifications = await notifyModel.getAllNotificationsActiveByUser(user_id);
-    //         return res.status(200).json({
-    //             status: 200,
-    //             message: 'Get all notifications successfully',
-    //             metadata: notifications
-    //         })
+    getAllRequestsByActiveUser = async (req, res) => {
+        try {
+            const user_id = req.user.user_id;
+            const role_id = req.user.role_id;
+            // Check if user is login
+            if (!user_id) throw new ForbiddenError("Please login to receive notifications");
 
+            const requests = await requestModel.getAllRequestsByActiveUser(user_id, role_id);
+            return res.status(200).json({
+                status: 200,
+                message: 'Get requests succes.',
+                data: requests
+            })
+        } catch (err) {
+            console.error(err);
+            throw err
+        }
+    }
 
-    //     } catch (err) {
-    //         console.error(err);
-    //         throw err
-    //     }
-    // }
     // getAllNotifications = async (req, res) => {
     //     try {
     //         const user_id = req.user.user_id;

@@ -4,11 +4,13 @@ const authMiddleware = require('../../middlewares/AuthMiddleWare');
 const requestController = require('../../controllers/RequestController')
 
 // Get all request
-// router.get('/', authMiddleware.isLogin, requestController);
-// router.get('/all', authMiddleware.isLogin, authMiddleware.isAdmin, requestController);
+router.get('/', authMiddleware.isLogin, requestController.getAllRequestsByActiveUser);
 
 // Add request
 router.post('/', authMiddleware.isLogin, requestController.createAttendanceRequest)
+
+// Approve request
+//router.post('/', authMiddleware.isLogin, requestController.createAttendanceRequest)
 
 // router.post('/createNotification', authMiddleware.isLogin, notifyController.createNotification)
 // router.post('/getAllNotificationsActiveByUser', authMiddleware.isLogin, notifyController.getAllNotificationsActiveByUser)

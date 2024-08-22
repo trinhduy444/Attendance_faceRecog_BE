@@ -663,7 +663,35 @@ GO
 
 CREATE VIEW vAttendanceRequest
 AS
-	SELECT a.*, ISNULL(b.teacher_id, 0) AS teacher_id 
+	SELECT a.*, ISNULL(b.teacher_id, 0) AS teacher_id, u0.nickname AS nickname0
+			, N'Yêu cầu điểm danh sinh viên ' + ISNULL(d.username, '') + N', nhóm môn ' + ISNULL(b.course_code + ' - ' + b.group_code, '') + N', ngày ' + CONVERT(VARCHAR(10), a.attend_date, 103) AS title
 		FROM AttendanceRequest a
 			LEFT JOIN CourseGroup b ON a.course_group_id = b.course_group_id
+			LEFT JOIN Course c ON b.course_code = c.course_code
+			LEFT JOIN SysUser d ON a.student_id = d.user_id
+			LEFT JOIN SysUser u0 ON a.creator_id = u0.user_id
+GO
+
+CREATE PROCEDURE sp_AfterUpdateAttendanceRequest
+	@request_id INT,
+	@status TINYINT,
+	@user_id INT
+AS
+BEGIN
+	DECLARE @course_group_id INT, @student_id INT, @dt DATETIME
+	SET @dt = GETDATE()
+
+	-- Update request status
+	UPDATE AttendanceRequest SET status = @status, updater_id = @user_id, update_time = @dt WHERE request_id = @request_id
+	
+	IF @status = 2 BEGIN
+		-- Update attendance state
+		UPDATE Attendance SET attend_yn = 1, note = N'Duyệt yêu cầu điểm danh.', updater_id = @user_id, update_time = @dt
+			FROM Attendance a WHERE EXISTS(SELECT 1 FROM AttendanceRequest x WHERE x.request_id = @request_id AND a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type = x.attend_type)
+	
+		-- Update total absent
+		SELECT @course_group_id = @course_group_id FROM AttendanceRequest a WHERE a.request_id = @request_id
+		EXEC UpdateTotalAbsent @course_group_id, @student_id
+	END
+END
 GO
