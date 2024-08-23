@@ -451,7 +451,7 @@ class CourseModel {
     };
     getAllCourseGroup(semester_year_id) {
         return new Promise((resolve, reject) => {
-            let q = `SELECT * FROM CourseGroupInfoView`;
+            let q = `SELECT * FROM CourseGroupInfoView ORDER BY semester_year_id DESC;`;
             let params = [];
 
             if (semester_year_id) {

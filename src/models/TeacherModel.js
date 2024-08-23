@@ -40,6 +40,21 @@ class TeacherModel {
             })
         })
     }
+    getAllTeachersByFacultyId(facultyId) {
+        return new Promise((resolve, reject) => {
+
+            const q = `select email, nickname, avatar_path from sysUser where faculty_id = ? and status = 1 and role_id = 2`
+            const params = [facultyId, 1]
+
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve(rows)
+                }
+            })
+        })
+    }
 }
 
 module.exports = new TeacherModel;

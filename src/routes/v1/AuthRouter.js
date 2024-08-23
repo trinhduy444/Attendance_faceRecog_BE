@@ -24,8 +24,9 @@ router.post('/checkToken/:token', authController.checkTokenValid) // chua xong
 // Change password
 router.post('/checkPassword', authMiddleWare.isLogin, authController.checkPasswordValid)
 router.put('/changePassword', authMiddleWare.isLogin, authController.changePassword)
-
-
+// Forgot password
+router.post('/forgotPassword', authController.forgotPassword)
+router.put('/resetPassword', authController.resetPassword)
 // Check valid token and decode who is trying to
 //isLogin
 router.post('/isLogin', authController.isLogin);
