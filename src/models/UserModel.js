@@ -85,6 +85,26 @@ class UserModel {
         });
     }
 
+    checkExistUserByUsernameAndEmail(username, email) {
+        username = sql.VarChar(username);
+        return new Promise((resolve, reject) => {
+            const q = 'select user_id from sysuser where username = ? and email = ? and status = ?';
+            const params = [username, email, 1];
+
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(false);
+                } else {
+                    if (rows.length > 0) {
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                }
+            });
+        });
+    }
+
     // Get user_id by username
     getUserIdByUsername(username) {
         username = sql.VarChar(username);
@@ -172,7 +192,7 @@ class UserModel {
     getAllUsersDetail(faculty_id, inputFilter, type, genderFilter) {
         return new Promise((resolve, reject) => {
             // Base query
-            let q = 'select user_id, email, username, nickname, phone, avatar_path, course_year, gender, faculty.faculty_name ' +
+            let q = 'select user_id, email, username, nickname, phone, avatar_path, course_year, gender, sysuser.status, faculty.faculty_name ' +
                 'from sysuser left join faculty On SysUser.faculty_id = faculty.faculty_id where role_id = 3';
             const params = [];
 
@@ -580,7 +600,7 @@ class UserModel {
                             break;
                         }
                         case 3: {
-                            console.log('delete')
+                            // console.log('delete')
                             this.deleteKey('allUsers')
                             resolve(rows);
                             break;
@@ -631,12 +651,38 @@ class UserModel {
             });
         });
     }
-
+    getFacultyByUserId(user_id) {
+        return new Promise((resolve, reject) => {
+            const q = `SELECT sy.faculty_id, fa.faculty_name FROM SysUser sy RIGHT JOIN faculty fa ON sy.faculty_id = fa.faculty_id WHERE sy.user_id = ?;`;
+            db.query(q, [user_id], (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows[0])
+                }
+            })
+        })
+    }
     updateUser(oldKey, user) {
 
     }
     deleteUser(key) {
 
+    }
+    updatePassword(username, email, hashedPassword) {
+        return new Promise((resolve, reject) => {
+                const q = `UPDATE SysUser SET password = ? WHERE username = ? AND email = ?`;
+
+            const params = [hashedPassword, username, email];
+
+            db.query(q, params, (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(true);
+                }
+            });
+        });
     }
 }
 

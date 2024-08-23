@@ -24,7 +24,13 @@ const multiBanMailCG = function (course_name, course_group) {
     <li>Chúng tôi khuyến khích bạn tham gia đầy đủ các buổi học..</li>
     <li>Nếu có bất kỳ thắc mắc nào hoặc nếu bạn tin rằng đây là sự nhầm lẫn, vui lòng liên hệ với giảng viên để được giải quyết kịp thời.</li>`
 }
+const forgotPasswordMail = function (username, urlToken) {
+    return `Thay đổi mật khẩu tài khoản: <strong>${username}</strong>,
+    <br/>
+    <p>Đường dẫn sẽ có hiệu lực trong 10 phút:</p>
+    <a href=${urlToken} target="_blank" rel="noopener noreferrer">${urlToken}</a>
+    <li>Nếu có bất kỳ thắc mắc nào hoặc nếu bạn tin rằng đây là sự nhầm lẫn, vui lòng liên hệ với giáo vụ để được giải quyết kịp thời.</li>`
+}
 
 
-
-module.exports = { warningMailCG, banMailCG, multiWarningMailCG, multiBanMailCG }
+module.exports = { warningMailCG, banMailCG, multiWarningMailCG, forgotPasswordMail }

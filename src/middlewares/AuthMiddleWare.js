@@ -12,8 +12,8 @@ class AuthMiddleware {
             // handle refresh token
             const { refreshToken } = req.cookies
             if (!refreshToken) throw new BadRequestError("refreshToken doesn't exist on cookies");
-            console.log("AT", accessToken)
-            console.log("RT", refreshToken)
+            // console.log("AT", accessToken)
+            // console.log("RT", refreshToken)
             const keyStore = await keyStoreModel.getUserByRefreshTokenUsing(refreshToken);
             if (!keyStore) throw new ForbiddenError("KeyStore invalid");
             
@@ -58,6 +58,7 @@ class AuthMiddleware {
         }
         return next();
     }
+    
 }
 
 module.exports = new AuthMiddleware;

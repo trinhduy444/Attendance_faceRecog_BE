@@ -7,6 +7,9 @@ const createKeys = require('../utils/createKeyUtil');
 const { createTokenPair } = require('../auth/authUtil');
 const { getInfoData } = require('../utils/index');
 const isPasswordValid = require('../utils/checkPasswordUtil');
+const sendMail = require('../config/nodeMailerConfig');
+const { forgotPasswordMail } = require('../helpers/mailContentHelper')
+
 const JWT = require("jsonwebtoken");
 class AuthController {
     login = async (req, res) => {
@@ -207,7 +210,7 @@ class AuthController {
         )
         const result = await keyStoreModel.updateRefreshTokenUsing(user_id, newRefreshToken);
         if (!result) throw new BadRequestError("Refresh token cannot be updated");
-        
+
         res.cookie("refreshToken", newRefreshToken, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
         return res.status(200).json({ user: payload, message: 'Refresh Token Successfully', newAT: newAccessToken })
     }
@@ -295,7 +298,51 @@ class AuthController {
         }
 
     }
+    forgotPassword = async (req, res) => {
+        const { username, email } = req.body;
+        if (!username || !email) throw new BadRequestError("Invalid username or email")
 
+        const exist = await userModel.checkExistUserByUsernameAndEmail(username, email);
+        if (!exist) {
+            return res.status(403).json({ status: 403, message: "User does not exist" });
+
+        } else {
+            const token = JWT.sign({ username, email }, process.env.JWT_SECRET, { expiresIn: '10min' });
+            const resetPasswordUrl = `${process.env.FRONTEND_URL}/resetPassword/${token}`;
+            const title = 'THAY ĐỔI MẬT KHẨU TRONG HỆ THỐNG!'
+            const content = forgotPasswordMail(username, resetPasswordUrl)
+            await sendMail(title, content, email)
+            return res.status(200).json({
+                status: 200,
+                message: "Password reset link has been sent.",
+            });
+        }
+    }
+    resetPassword = async (req, res) => {
+        const { token, newPassword } = req.body;
+        try {
+            const decoded = JWT.verify(token, process.env.JWT_SECRET);
+            
+            const { username, email } = decoded;
+
+            const user = await userModel.checkExistUserByUsernameAndEmail(username, email);
+            if (!user) {
+                return res.status(403).json({ status: 403, message: "Invalid token or user does not exist" });
+            }
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const result = await userModel.updatePassword(username, email, hashedPassword);
+            if (result === true) {
+
+                return res.status(200).json({ status: 200, message: "Password has been successfully updated" });
+            } else {
+                return res.status(403).json({ status: 403, message: "Fail to update Password, try again!" });
+
+            }
+        } catch (err) {
+            console.error(err);
+            return res.status(400).json({ status: 400, message: "Invalid or expired token" });
+        }
+    };
 }
 
 module.exports = new AuthController;
