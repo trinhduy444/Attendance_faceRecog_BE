@@ -48,99 +48,63 @@ class RequestController {
             console.error(err);
             throw err
         }
+    };
+
+    approveAttendanceRequest = async (req, res) => {
+        try {
+            const user_id = req.user.user_id;
+            // Check if user is login
+            if (!user_id) throw new ForbiddenError("Please login to use this function");
+
+            const { request_id } = req.params;
+
+            const request = await requestModel.updateAttendanceRequest(request_id, 2, user_id);
+            if (request == 0) {
+                return res.status(403).json({
+                    status: 403,
+                    message: 'Permission deny.',
+                    data: {}
+                });
+            } else {
+                return res.status(200).json({
+                    status: 200,
+                    message: 'Approve request success.',
+                    data: {}
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            throw err
+        }
     }
 
-    // getAllNotifications = async (req, res) => {
-    //     try {
-    //         const user_id = req.user.user_id;
-    //         if (user_id !== 1) throw new ForbiddenError("You are not allow to receive notifications");
+    rejectAttendanceRequest = async (req, res) => {
+        try {
+            const user_id = req.user.user_id;
+            // Check if user is login
+            if (!user_id) throw new ForbiddenError("Please login to use this function");
 
-    //         const notifications = await notifyModel.getAllNotifications();
-    //         return res.status(200).json({
-    //             status: 200,
-    //             message: 'Get all notifications successfully',
-    //             metadata: notifications
-    //         })
+            const { request_id } = req.params;
 
-    //     } catch (err) {
-    //         console.error(err);
-    //         throw err
-    //     }
-    // }
-    // hideNotifications = async (req, res) => {
-    //     try {
-    //         const user_id = req.user.user_id;
-    //         if (user_id !== 1) throw new ForbiddenError("You are not allow to receive notifications");
-    //         const { notify_id } = req.params
-    //         if (!notify_id) throw new BadRequestError("Not found notification")
-    //         const result = await notifyModel.hideNotification(notify_id, user_id);
-    //         if (result) {
-    //             return res.status(201).json({
-    //                 status: 201,
-    //                 message: 'Hide notification successfully',
-
-    //             })
-    //         } else {
-    //             return res.status(200).json({
-    //                 status: 200,
-    //                 message: 'Hide notification failed',
-    //             })
-    //         }
-    //     } catch (err) {
-    //         console.error(err);
-    //         throw err
-    //     }
-    // }
-    // showNotifications = async (req, res) => {
-    //     try {
-    //         const user_id = req.user.user_id;
-    //         if (user_id !== 1) throw new ForbiddenError("You are not allow to receive notifications");
-    //         const { notify_id } = req.params
-    //         if (!notify_id) throw new BadRequestError("Not found notification")
-    //         const result = await notifyModel.showNotification(notify_id, user_id);
-    //         if (result) {
-    //             return res.status(201).json({
-    //                 status: 201,
-    //                 message: 'Show notification successfully',
-
-    //             })
-    //         } else {
-    //             return res.status(200).json({
-    //                 status: 200,
-    //                 message: 'Show notification failed',
-    //             })
-    //         }
-    //     } catch (err) {
-    //         console.error(err);
-    //         throw err
-    //     }
-    // }
-    // viewNotification = async (req, res) => {
-    //     try {
-    //         const user_id = req.user.user_id;
-    //         if (!user_id) throw new ForbiddenError("You are not allow to view notifications");
-    //         const { notify_id } = req.params
-    //         if (!notify_id) throw new BadRequestError("Not found notification")
-    //         console.log(notify_id, user_id)
-
-    //         const result = await notifyModel.viewNotification(notify_id, user_id);
-    //         if (result) {
-    //             return res.status(201).json({
-    //                 status: 201,
-    //                 message: 'View notification successfully',
-
-    //             })
-    //         } else {
-    //             return res.status(200).json({
-    //                 status: 200,
-    //                 message: 'Cannot view notification',
-    //             })
-    //         }
-    //     } catch (err) {
-    //         console.error(err);
-    //         throw err
-    //     }
-    // }
+            const request = await requestModel.updateAttendanceRequest(request_id, 9, user_id);
+            if (request == 0) {
+                return res.status(403).json({
+                    status: 403,
+                    message: 'Permission deny.',
+                    data: {}
+                });
+            } else {
+                return res.status(200).json({
+                    status: 200,
+                    message: 'Reject request success.',
+                    data: {}
+                });
+            }
+        } catch (err) {
+            console.error(err);
+            throw err
+        }
+    }
 }
 
 module.exports = new RequestController();

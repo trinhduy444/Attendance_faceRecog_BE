@@ -681,6 +681,11 @@ BEGIN
 	DECLARE @course_group_id INT, @student_id INT, @dt DATETIME
 	SET @dt = GETDATE()
 
+	IF NOT EXISTS(SELECT 1 FROM vAttendanceRequest x WHERE x.request_id = @request_id AND x.teacher_id = @user_id) BEGIN
+		SELECT 0 AS permission, 'Not allow' AS message
+		RETURN
+	END
+
 	-- Update request status
 	UPDATE AttendanceRequest SET status = @status, updater_id = @user_id, update_time = @dt WHERE request_id = @request_id
 	
