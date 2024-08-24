@@ -9,8 +9,10 @@ cloudinary.config({
 });
 const CLOUDINARY_FOLDER = 'Attendance_System';
 const CLOUDINARY_FOLDER2 = 'Attendance_Data';
+const CLOUDINARY_FOLDER3 = 'Request_Image';
 
-module.exports = { cloudinary,CLOUDINARY_FOLDER,CLOUDINARY_FOLDER2 };
+
+module.exports = { cloudinary,CLOUDINARY_FOLDER,CLOUDINARY_FOLDER2,CLOUDINARY_FOLDER3 };
 
 // (async function () {
 //     // CLOUDINARY_URL=cloudinary://863579243165465:4EDP-poLXWBWOVtTCZCv5EZ_v8k@diges8hpb

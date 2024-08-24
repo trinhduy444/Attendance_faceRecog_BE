@@ -86,10 +86,27 @@ class RequestModel {
                         resolve(rows[0].permission);
                     } else {
                         resolve(1);
-                    }                    
+                    }
                 }
             });
         });
+    }
+
+    updateImageRequest(request_id, updater_id, proof_image_path) {
+        request_id = sql.Int(request_id);
+        updater_id = sql.Int(updater_id);
+        return new Promise((resolve, reject) => {
+            const q = 'UPDATE AttendanceRequest set updater_id = ?, proof_image_path = ?, update_time = getdate() WHERE request_id = ?'
+            const params = [updater_id, proof_image_path, request_id]
+            db.query(q, params, (err, res) => {
+                if (err) {
+                    reject(err)
+                }else{
+                    resolve(true)
+                }
+            })
+        })
+
     }
 }
 
