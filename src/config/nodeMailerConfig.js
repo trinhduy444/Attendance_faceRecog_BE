@@ -41,7 +41,7 @@ const sendMail2 = async (title, content, emailReceived, imageUrl, attendanceId) 
                 <div style="font-family: Arial, sans-serif; line-height: 1.6;">
                     <h2>${title}</h2>
                     <p>${content}</p>
-                    <img src="https://res.cloudinary.com/diges8hpb/image/upload/v1723454158/sclogo_pit5fd.jpg" alt="Logo" style="width: 150px; height: auto;" />
+                    <img src="https://res.cloudinary.com/diges8hpb/image/upload/v1724494135/logo192_tzi33l.jpg" alt="Logo" style="width: 150px; height: auto;" />
                 </div>
             `,
         };
