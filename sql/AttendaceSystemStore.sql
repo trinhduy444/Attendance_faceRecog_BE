@@ -159,77 +159,56 @@ CREATE PROCEDURE UpdateAttendanceFromRawData
 	@course_group_id INT,
 	@attend_date DATE,
 	@user_id INT,
-	@force_update_yn BIT = 0
--- 0. Update if not exists data, 1. Always update
+	@force_update_yn BIT = 0 -- 0. Update if not exists data, 1. Always update
 AS
 BEGIN
 	SET NOCOUNT ON
-
 	-- Check if attendance data already exists and force_update_yn = 0. Don't update
-	IF @force_update_yn = 0 AND EXISTS(SELECT 1
-		FROM Attendance x
-		WHERE x.course_group_id = @course_group_id AND x.attend_date = @attend_date) BEGIN
+	IF @force_update_yn = 0 AND EXISTS(SELECT 1 FROM Attendance x WHERE x.course_group_id = @course_group_id AND x.attend_date = @attend_date) BEGIN
 		SELECT 'Update cancel' AS message
 		RETURN;
 	END
 
-	DECLARE @CurrDate DATETIME = GETDATE()
+	DECLARE @CurrDate DATETIME = GETDATE(), @LateTime CHAR(5)
+
+	-- Get course late time
+	SELECT @LateTime = CONVERT(CHAR(5), DATEADD(MINUTE, 15, CAST(c.start_time AS TIME)), 114)
+		FROM CourseGroup a
+			JOIN ClassRoomShift b ON a.classroomshift_id = b.classroomshift_id
+			JOIN Shift c ON b.shift_code = c.shift_code
+		WHERE a.course_group_id = @course_group_id
 
 	-- Student in group list
-	SELECT student_id
-	INTO #student
-	FROM CourseGroupStudentList
-	WHERE course_group_id = @course_group_id
+	SELECT student_id INTO #student FROM CourseGroupStudentList WHERE course_group_id = @course_group_id
 
 	-- Get attendant data
-	SELECT *
-	INTO #tmp
-	FROM AttendanceRawData
-	WHERE course_group_id = @course_group_id AND attend_date = @attend_date
+	SELECT * INTO #tmp FROM AttendanceRawData WHERE course_group_id = @course_group_id AND attend_date = @attend_date
 
 	-- Struct
-	SELECT TOP 0
-		a.*
-	INTO #data
-	FROM Attendance a
-	WHERE 1=0
+	SELECT TOP 0 a.* INTO #data FROM Attendance a WHERE 1=0
 
 	-- Insert student with it attendant state
-	INSERT INTO #data
-		(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
-			SELECT a.student_id, a.course_group_id, a.attend_date, 1, a.attend_time, '00:00', a.attend_image_path, a.attend_type
-		FROM #tmp a
-		WHERE a.attend_type % 2 = 0
+	INSERT INTO #data (student_id, course_group_id, attend_date, attend_yn, late_yn, enter_time, leave_time, attend_image_path, attend_type)
+		SELECT a.student_id, a.course_group_id, a.attend_date, 1, 0, a.attend_time, '00:00', a.attend_image_path, a.attend_type FROM #tmp a WHERE a.attend_type % 2 = 0
 	UNION ALL
-		SELECT a.student_id, @course_group_id, @attend_date, 0, '00:00', '00:00', '', 0
-		FROM #student a
-		WHERE NOT EXISTS(SELECT 1
-		FROM #tmp x
-		WHERE a.student_id = x.student_id)
+		SELECT a.student_id, @course_group_id, @attend_date, 0, 0, '00:00', '00:00', '', 0 FROM #student a WHERE NOT EXISTS(SELECT 1 FROM #tmp x WHERE a.student_id = x.student_id)
 
 	-- Update leave time
 	UPDATE #data SET leave_time = ISNULL(b.attend_time, '00:00') FROM #data a LEFT JOIN #tmp b ON a.student_id = b.student_id AND a.course_group_id = b.course_group_id AND a.attend_date = b.attend_date AND a.attend_type = b.attend_type - 1 WHERE a.attend_type % 2 = 0
 
 	-- Insert student who miss start of class
-	INSERT INTO #data
-		(student_id, course_group_id, attend_date, attend_yn, enter_time, leave_time, attend_image_path, attend_type)
-	SELECT a.student_id, a.course_group_id, a.attend_date, 1, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1
-	FROM #tmp a WITH(NOLOCK)
-	WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1
-		FROM #tmp x WITH(NOLOCK)
-		WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
+	INSERT INTO #data (student_id, course_group_id, attend_date, attend_yn, late_yn, enter_time, leave_time, attend_image_path, attend_type)
+		SELECT a.student_id, a.course_group_id, a.attend_date, 1, 0, '00:00', a.attend_time, a.attend_image_path, a.attend_type - 1 FROM #tmp a WITH(NOLOCK)
+			WHERE a.attend_type % 2 = 1 AND NOT EXISTS(SELECT 1 FROM #tmp x WITH(NOLOCK) WHERE a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type - 1 = x.attend_type)
 
+	UPDATE #data SET late_yn = 1 WHERE attend_yn = 1 AND @LateTime IS NOT NULL AND enter_time > @LateTime
 	UPDATE #data SET note = '', status = 1, creator_id = @user_id, updater_id = @user_id, create_time = @CurrDate, update_time = @CurrDate
 
 	BEGIN TRY
 		BEGIN TRANSACTION;
 			
-			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1
-	FROM #data x
-	WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
-			INSERT INTO Attendance
-	SELECT *
-	FROM #data
+			DELETE Attendance FROM Attendance a WHERE EXISTS(SELECT 1 FROM #data x WHERE a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date)
+			INSERT INTO Attendance SELECT * FROM #data
 
 			SELECT 'Update finish' AS message
 
@@ -646,7 +625,7 @@ BEGIN
 	IF @total_shift = 0 SELECT @total_shift = COUNT(1) FROM Attendance a WHERE a.course_group_id = @course_group_id GROUP BY a.course_group_id, a.student_id
 
 	-- Get total absent
-	SELECT a.course_group_id, a.student_id, SUM(IIF(a.attend_yn = 0, 1, 0)) AS total_absent, CAST(0 AS NUMERIC(19, 5)) AS absent_ratio
+	SELECT a.course_group_id, a.student_id, SUM(IIF(a.attend_yn = 0, 1, IIF(a.late_yn = 1, 0.5, 0))) AS total_absent, CAST(0 AS NUMERIC(19, 5)) AS absent_ratio
 		INTO #total FROM Attendance a
 		WHERE a.course_group_id = @course_group_id AND (@user_id_list = '' OR EXISTS(SELECT 1 FROM #userlist x WHERE a.student_id = x.user_id))
 		GROUP BY a.course_group_id, a.student_id

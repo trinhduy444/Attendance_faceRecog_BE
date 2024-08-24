@@ -210,7 +210,7 @@ class AttendanceRawDataModel {
     // Update exists attendance
     updateAttendance(oldKey, attendance, userId) {
         let { studentId, courseGroupId, attendDate } = oldKey;
-        let { attendYn, enterTime, note } = attendance;
+        let { attendYn, lateYn, enterTime, note } = attendance;
 
         // Convert string to date
         attendDate = attendDate == null ? null : new Date(attendDate);
@@ -220,14 +220,15 @@ class AttendanceRawDataModel {
         attendDate = sql.Date(attendDate);
 
         attendYn = sql.Bit(attendYn);
+        lateYn = sql.Bit(lateYn);
         enterTime = sql.VarChar(enterTime);
         note = sql.NVarChar(note);
 
         userId = sql.Int(userId);
 
         return new Promise((resolve, reject) => {
-            const q = 'update attendance set attend_yn = ?, enter_time = ?, note = ?, updater_id = ?, update_time = getdate() where student_id = ? and course_group_id = ? and attend_date = ?';
-            const params = [attendYn, enterTime, note, userId, studentId, courseGroupId, attendDate];
+            const q = 'update attendance set attend_yn = ?, late_yn = ?, enter_time = ?, note = ?, updater_id = ?, update_time = getdate() where student_id = ? and course_group_id = ? and attend_date = ?';
+            const params = [attendYn, lateYn, enterTime, note, userId, studentId, courseGroupId, attendDate];
             db.query(q, params, (err, rows) => {
                 if (err) reject(err);
                 resolve();

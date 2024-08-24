@@ -217,6 +217,7 @@ CREATE TABLE Attendance
 	[course_group_id] INT NOT NULL,
 	[attend_date] DATE NOT NULL,
 	[attend_yn] BIT NOT NULL,
+	[late_yn] BIT NOT NULL,
 	[enter_time] CHAR(5) NULL,
 	[leave_time] CHAR(5) NULL,
 	[attend_type] TINYINT NULL,

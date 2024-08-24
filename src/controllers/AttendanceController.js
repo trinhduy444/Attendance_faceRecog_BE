@@ -156,16 +156,17 @@ class AttendanceController {
         });
     }
     putAttendance(req, res) {
-        let { studentId, courseGroupId, attendDate, attendYn, enterTime, note } = req.body;
+        let { studentId, courseGroupId, attendDate, attendYn, lateYn, enterTime, note } = req.body;
         studentId = studentId || 0;
         courseGroupId = courseGroupId || 0;
         attendDate = attendDate || null;
         attendYn = attendYn || 0;
+        lateYn = lateYn || 0;
         enterTime = enterTime || '00:00';
         note = note || '';
 
         const oldKey = { studentId, courseGroupId, attendDate };
-        const attendance = { attendYn, enterTime, note };
+        const attendance = { attendYn, lateYn, enterTime, note };
         attendanceModel.updateAttendance(oldKey, attendance, req.user.user_id)
             .then(() => {
                 courseModel.updateTotalAbsent(courseGroupId, studentId.toString())
