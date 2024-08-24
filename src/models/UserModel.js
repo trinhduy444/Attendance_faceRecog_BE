@@ -569,7 +569,7 @@ class UserModel {
     }
     getSomeInfo(user_id) {
         return new Promise((resolve, reject) => {
-            const q = 'select su.avatar_path, su.nickname, su.username, su.faculty_id,fa.faculty_name   from sysUser as su INNER JOIN Faculty as fa on su.faculty_id = fa.faculty_id where user_id = ? and status = ?';
+            const q = `select su.avatar_path, su.nickname, su.username, su.faculty_id, isnull(fa.faculty_name, '') as faculty_name from sysUser as su left join Faculty as fa on su.faculty_id = fa.faculty_id where user_id = ? and status = ?`;
             db.query(q, [user_id, 1], (err, rows) => {
                 if (err) {
                     console.log(err)

@@ -687,3 +687,69 @@ BEGIN
 	DROP TABLE #info
 END
 GO
+
+-- 23/08/2024 Update complain, attendance state change request
+GO
+CREATE TABLE AttendanceRequest
+(
+	[request_id] INT IDENTITY(1, 1) NOT NULL,
+	[student_id] INT NOT NULL,
+	[course_group_id] INT NOT NULL,
+	[attend_date] DATE NOT NULL,
+	[attend_type] TINYINT NOT NULL,
+	[proof_image_path] VARCHAR(128) NULL,
+	[file_link] VARCHAR(256) NULL,
+	[content] NVARCHAR(2048) NULL, -- Content of request
+	[response] NVARCHAR(2048) NULL, -- Aprrover response to request
+	[request_type] TINYINT, --0: Attendance
+	[status] TINYINT NULL, -- 0: Not use, 1: Pending, 2: Approved, 9: Cancel
+	[creator_id] INT NULL,
+	[updater_id] INT NULL,
+	[create_time] DATETIME NULL,
+	[update_time] DATETIME NULL
+)
+ALTER TABLE AttendanceRequest ADD CONSTRAINT PK_AttendanceRequest PRIMARY KEY CLUSTERED(student_id, course_group_id, attend_date, attend_type) ON [PRIMARY]
+ALTER TABLE AttendanceRequest ADD CONSTRAINT FK_AttendanceRequest_UserStudent FOREIGN KEY(student_id) REFERENCES SysUser(user_id)
+ALTER TABLE AttendanceRequest ADD CONSTRAINT FK_AttendanceRequest_CourseGroup FOREIGN KEY(course_group_id) REFERENCES CourseGroup(course_group_id)
+GO
+
+GO
+CREATE VIEW vAttendanceRequest
+AS
+	SELECT a.*, ISNULL(b.teacher_id, 0) AS teacher_id, u0.nickname AS nickname0
+			, N'Yêu cầu điểm danh sinh viên ' + ISNULL(d.username, '') + N', nhóm môn ' + ISNULL(b.course_code + ' - ' + b.group_code, '') + N', ngày ' + CONVERT(VARCHAR(10), a.attend_date, 103) AS title
+		FROM AttendanceRequest a
+			LEFT JOIN CourseGroup b ON a.course_group_id = b.course_group_id
+			LEFT JOIN Course c ON b.course_code = c.course_code
+			LEFT JOIN SysUser d ON a.student_id = d.user_id
+			LEFT JOIN SysUser u0 ON a.creator_id = u0.user_id
+GO
+
+CREATE PROCEDURE sp_AfterUpdateAttendanceRequest
+	@request_id INT,
+	@status TINYINT,
+	@user_id INT
+AS
+BEGIN
+	DECLARE @course_group_id INT, @student_id INT, @dt DATETIME
+	SET @dt = GETDATE()
+
+	IF NOT EXISTS(SELECT 1 FROM vAttendanceRequest x WHERE x.request_id = @request_id AND x.teacher_id = @user_id) BEGIN
+		SELECT 0 AS permission, 'Not allow' AS message
+		RETURN
+	END
+
+	-- Update request status
+	UPDATE AttendanceRequest SET status = @status, updater_id = @user_id, update_time = @dt WHERE request_id = @request_id
+	
+	IF @status = 2 BEGIN
+		-- Update attendance state
+		UPDATE Attendance SET attend_yn = 1, note = N'Duyệt yêu cầu điểm danh.', updater_id = @user_id, update_time = @dt
+			FROM Attendance a WHERE EXISTS(SELECT 1 FROM AttendanceRequest x WHERE x.request_id = @request_id AND a.student_id = x.student_id AND a.course_group_id = x.course_group_id AND a.attend_date = x.attend_date AND a.attend_type = x.attend_type)
+	
+		-- Update total absent
+		SELECT @course_group_id = @course_group_id FROM AttendanceRequest a WHERE a.request_id = @request_id
+		EXEC UpdateTotalAbsent @course_group_id, @student_id
+	END
+END
+GO
