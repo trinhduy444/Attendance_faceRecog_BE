@@ -129,6 +129,7 @@ class UserController {
 
         userModel.getUserFaces(userId)
             .then((faces) => {
+                console.log(faces)
                 return res.status(200).json({
                     'status': 200,
                     'message': 'Receive user faces success.',
@@ -137,8 +138,9 @@ class UserController {
                     }
                 });
             }).catch((err) => {
-                return res.status(500).json({
-                    'status': 500,
+                console.error(err)
+                return res.status(403).json({
+                    'status': 403,
                     'message': err,
                     'data': {}
                 });

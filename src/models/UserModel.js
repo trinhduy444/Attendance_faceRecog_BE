@@ -509,7 +509,7 @@ class UserModel {
         });
     }
     updateAvatarUser(user_id, avatar_path) {
-        console.log(user_id, avatar_path);
+        this.deleteKey('allUsers')
         user_id = sql.Int(user_id);
         avatar_path = sql.VarChar(avatar_path);
 

@@ -245,7 +245,10 @@ class CourseModel {
 
             } catch (error) {
                 console.error('Error in createMultiStudentList:', error);
-                throw error;
+                return res.status(500).json({
+                    status: 500,
+                    message: error.message,
+                });
             }
         })
     };
@@ -325,7 +328,7 @@ class CourseModel {
             db.query(q, courseGroupValues, async (err, result) => {
                 if (err) {
                     console.error('Error inserting course groups:', err);
-                    throw err;
+                    reject(err);
                 }
 
                 for (let i = 0; i < result.length; i++) {

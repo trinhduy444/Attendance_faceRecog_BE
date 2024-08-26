@@ -15,14 +15,17 @@ class NotifyController {
 
             await notifyModel.createReceived(type, valueType, notify_id, user_id);
             // console.log("notify id", notify_id);
-            res.status(201).json({
+            return res.status(201).json({
                 status: 201,
                 message: 'Notification created successfully',
                 notify_id,
             });
         } catch (error) {
             console.error(error);
-            throw error
+            return res.status(500).json({
+                status: 500,
+                message: error.message,
+            });
         }
     };
     getAllNotificationsActiveByUser = async (req, res) => {
@@ -39,7 +42,10 @@ class NotifyController {
 
         } catch (err) {
             console.error(err);
-            throw err
+            return res.status(500).json({
+                status: 500,
+                message: err.message,
+            });
         }
     }
     getAllNotifications = async (req, res) => {
@@ -56,7 +62,10 @@ class NotifyController {
 
         } catch (err) {
             console.error(err);
-            throw err
+            return res.status(500).json({
+                status: 500,
+                message: err.message,
+            });
         }
     }
     hideNotifications = async (req, res) => {
@@ -80,7 +89,10 @@ class NotifyController {
             }
         } catch (err) {
             console.error(err);
-            throw err
+            return res.status(500).json({
+                status: 500,
+                message: err.message,
+            });
         }
     }
     showNotifications = async (req, res) => {
@@ -104,7 +116,10 @@ class NotifyController {
             }
         } catch (err) {
             console.error(err);
-            throw err
+            return res.status(500).json({
+                status: 500,
+                message: err.message,
+            });
         }
     }
     viewNotification = async (req, res) => {
@@ -130,7 +145,10 @@ class NotifyController {
             }
         } catch (err) {
             console.error(err);
-            throw err
+            return res.status(500).json({
+                status: 500,
+                message: err.message,
+            });
         }
     }
 }

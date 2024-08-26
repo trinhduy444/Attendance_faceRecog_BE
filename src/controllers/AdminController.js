@@ -238,14 +238,14 @@ class AdminController {
                     results.push({ username, status: 'Lỗi khi upload', error: error.message });
                 }
             }
-
+            await userModel.deleteKey('allUsers')
             return res.status(201).json({
                 message: "Upload completed",
                 results: results
             });
 
         } catch (error) {
-            res.status(400).json({ status: 500, message: 'Lỗi khi xử lý upload ảnh', error: error.message });
+            return res.status(400).json({ status: 500, message: 'Lỗi khi xử lý upload ảnh', error: error.message });
         }
     };
     getTeachersByFaculty = async (req, res) => {

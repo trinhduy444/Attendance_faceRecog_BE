@@ -47,7 +47,10 @@ class RequestController {
             })
         } catch (err) {
             console.error(err);
-            throw err
+            return res.status(500).json({
+                status: 500,
+                message: err.message,
+            });
         }
     };
 
@@ -75,7 +78,10 @@ class RequestController {
             }
         } catch (err) {
             console.error(err);
-            throw err
+            return res.status(500).json({
+                status: 500,
+                message: err.message,
+            });
         }
     }
 
@@ -103,7 +109,10 @@ class RequestController {
             }
         } catch (err) {
             console.error(err);
-            throw err
+            return res.status(500).json({
+                status: 500,
+                message: err.message,
+            });
         }
     }
     uploadImageRequest = async (req, res) => {
