@@ -947,3 +947,7 @@ GO
 
 -- View nào lấy lên hông đủ cột thì chạy cái này nha Duy
 EXEC sys.sp_refreshview 'vAttendance' -- Tên view
+GO
+
+-- 18/10/2024 Thêm cột 
+ALTER TABLE SysUserFace ADD uuid VARCHAR(36) NULL

@@ -17,10 +17,9 @@ const { errorHandler } = require('./core/ErrorResponse')
 
 // Init Middleware
 app.use(express.json());
-app.use(morgan("dev"));
+app.use(morgan('dev'));
 app.use(compression());
 app.use(cookieParser());
-
 
 // Security Implementations
 const corsOptions = {
@@ -42,7 +41,6 @@ app.get('/', (req, res) => {
     res.send('Attendance Face API');
 });
 
-
 // Hanling Error
 app.use((req, res) => {
     return res.status(404).json({
@@ -51,6 +49,5 @@ app.use((req, res) => {
         'data': {}
     });
 });
-
 
 module.exports = app;

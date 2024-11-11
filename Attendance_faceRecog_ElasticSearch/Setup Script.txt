@@ -1,0 +1,15 @@
+# Create an index
+PUT /faces
+{ 
+  "mappings" : { 
+      "properties" : { 
+        "face_name" : { 
+          "type" : "keyword" 
+        }, 
+        "face_encoding" : {
+          "type" : "dense_vector", 
+          "dims" : 128 
+        } 
+      } 
+    } 
+}

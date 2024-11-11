@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const AdminController = require('../../controllers/AdminController');
 const authMiddleware = require('../../middlewares/AuthMiddleWare');
-// console.log(authMiddleware)
 const upload = require('../../config/MulterConfig');
 
 router.post('/getUsers', authMiddleware.isLogin, authMiddleware.isAdmin, AdminController.getUsers);

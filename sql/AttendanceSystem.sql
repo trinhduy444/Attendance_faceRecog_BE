@@ -364,6 +364,7 @@ CREATE TABLE SysUserFace
 	[user_face_id] INT IDENTITY(1, 1) NOT NULL,
 	[user_id] INT NOT NULL,
 	[face_image_path] VARCHAR(128) NULL,
+	[uuid] VARCHAR(36) NULL,
 	[status] BIT NULL,
 	[creator_id] INT NULL,
 	[updater_id] INT NULL,

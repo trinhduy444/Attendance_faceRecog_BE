@@ -16,6 +16,7 @@ const notifyRouterV1 = require('./v1/NotifyRouter');
 const scheduleRouterV1 = require('./v1/ScheduleRouter');
 const teacherRouterV1 = require('./v1/TeacherRouter');
 const requestRouterV1 = require('./v1/RequestRouter');
+const faceRouterV1 = require('./v1/FaceRouter');
 
 router.use(session({
     secret: 'admin123',
@@ -41,5 +42,6 @@ router.use('/v1/notify', notifyRouterV1);
 router.use('/v1/schedule', scheduleRouterV1);
 router.use('/v1/teacher', teacherRouterV1);
 router.use('/v1/requests', requestRouterV1);
+router.use('/v1/faces', faceRouterV1);
 
 module.exports = router;
