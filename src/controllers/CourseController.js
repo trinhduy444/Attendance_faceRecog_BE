@@ -127,9 +127,6 @@ class CourseController {
 
     getCourseFilter = async (req, res) => {
         const { faculty_id, inputFilter, type, credit } = req.body;
-        if (req.user?.role_id !== 1) {
-            throw new ForbiddenError('You are not allowed');
-        }
         const courses = await courseModel.getCoursesFilter(faculty_id, inputFilter, type, credit);
         // console.log(courses)
         return res.status(200).json({
@@ -140,7 +137,7 @@ class CourseController {
     };
 
     getAllCourseGroupActive = async (req, res) => {
-        if (req.user?.role_id !== 1) {
+        if (req.user?.role_id !== 1 && req.user.role_id !== 4) {
             throw new ForbiddenError('You are not allowed');
         }
         const coursegroups = await courseModel.getAllCourseGroupActive();
@@ -174,7 +171,7 @@ class CourseController {
     }
 
     createCourseGroup = async (req, res) => {
-        if (req.user?.role_id !== 1) {
+        if (req.user?.role_id !== 1 && req.user.role_id !== 4) {
             throw new ForbiddenError('You are not allowed');
         }
         const user_id = req.user.user_id;
@@ -204,7 +201,7 @@ class CourseController {
     getAllCoursesGroupByTeacherId = async (req, res) => {
         const { semester_year_id } = req.query;
 
-        if (req.user?.role_id !== 2) {
+        if (req.user?.role_id !== 2 && req.user?.role_id !== 4 && req.user?.role_id !== 1 ) {
             return res.status(403).json({ error: 'You are not allowed' });
         }
 
@@ -261,17 +258,17 @@ class CourseController {
     };
     getAllCourseGroup = async (req, res) => {
         const { semester_year_id } = req.query;
+        // console.log("sêms",semester_year_id);
         try {
             const data = await courseModel.getAllCourseGroup(semester_year_id);
-            // console.log(data,semester_year_id);
             return res.status(200).json({
                 status: 200,
                 message: "Get Info Course Group Successfully",
                 metadata: data
             })
         } catch (err) {
-            return res.status(400).json({
-                status: 400,
+            return res.status(500).json({
+                status: 500,
                 message: "Somthing went wrong!"
             })
         }
@@ -293,6 +290,33 @@ class CourseController {
             })
         }
     }
+    checkAccessCourseGroupTeacher = async (req, res) => {
+        
+        const user_id = req.user.user_id;
+        const { course_group_id } = req.params;
+        
+        try {
+            const result = await courseModel.checkTeacherInCourseGroup(course_group_id, user_id);
+            if (result === true) {
+                return res.status(200).json({
+                    status: 200,
+                    message: "Ok, you can access to the course group"
+                })
+            }
+            else {
+                return res.status(200).json({
+                    status: 400,
+                    message: "Fail, you are not allowed to access this course group"
+                })
+            }
+        } catch (err) {
+            return res.status(400).json({
+                status: 400,
+                message: "Somthing went wrong!"
+            })
+        }
+    }
+
     checkInCourseGroup = async (req, res) => {
         const user_id = req.user.user_id;
         const { course_group_id } = req.params;
@@ -338,7 +362,7 @@ class CourseController {
     };
     createCourseGroups = async (req, res) => {
         try {
-            if (req.user.role_id !== 1) throw new ForbiddenError("You not allowed to create a new course group")
+            if (req.user?.role_id !== 1 && req.user?.role_id !== 4)  throw new ForbiddenError("You not allowed to create a new course group")
             const { courseGroups } = req.body;
             if (courseGroups.length <= 0 || !courseGroups) {
                 return res.status(200).json({ status: 400, message: "No courses found" });
@@ -360,7 +384,7 @@ class CourseController {
     }
     createStudentList = async (req, res) => {
         try {
-            if (req.user.role_id !== 1) throw new ForbiddenError("You not allowed to create a new course group")
+            if (req.user?.role_id !== 1 && req.user?.role_id !== 4)  throw new ForbiddenError("You not allowed to create a new course group")
             const { studentLists } = req.body;
             if (studentLists.length <= 0 || !studentLists) {
                 return res.status(200).json({ status: 400, message: "No students found" });
@@ -382,7 +406,7 @@ class CourseController {
 
     }
     viewAllStudentCourseGroup = async (req, res) => {
-        if (req.user.role_id !== 1) throw new ForbiddenError("You are not allowed to view data")
+        if (req.user?.role_id !== 1 && req.user?.role_id !== 4)  throw new ForbiddenError("You are not allowed to view data")
         let { status, teacher_id, course_group_id } = req.query;
         if (!course_group_id) {
             return res.status(403).json({

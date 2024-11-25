@@ -254,8 +254,9 @@ class AuthController {
     }
     isAdmin = async (req, res) => {
         try {
-            if (req.user.role_id != 1) {
-                return res.status(403).json({
+            const role_id = req.user.role_id;
+            if (role_id != 1 && role_id != 4) {
+                return res.status(200).json({
                     'status': 403,
                     'message': 'Not Admin',
                     'data': {}
@@ -285,7 +286,7 @@ class AuthController {
     isAdminOrTeacher = async (req, res) => {
         try {
             const role_id = req.user.role_id
-            if (role_id !== 1 && role_id !== 2) {
+            if (role_id !== 1 && role_id !== 4 && role_id !== 2) {
                 return res.status(403).json({
                     'status': 403,
                     'message': 'Not Admin or Teacher',
@@ -297,6 +298,21 @@ class AuthController {
             return res.status(403).json({ status: 403, message: "Not Admin or Teacher" });
         }
 
+    }
+    isRootAdmin = async (req, res) => {
+        try {
+            const role_id = req.user.role_id
+            if (role_id !== 4) {
+                return res.status(403).json({
+                    'status': 403,
+                    'message': 'Not Root Admin',
+                    'data': {}
+                });
+            }
+            return res.status(200).json({ status: 200, message: 'OK' });
+        } catch (error) {
+            return res.status(403).json({ status: 403, message: "Not Admin or Teacher" });
+        }
     }
     forgotPassword = async (req, res) => {
         const { username, email } = req.body;
@@ -322,7 +338,7 @@ class AuthController {
         const { token, newPassword } = req.body;
         try {
             const decoded = JWT.verify(token, process.env.JWT_SECRET);
-            
+
             const { username, email } = decoded;
 
             const user = await userModel.checkExistUserByUsernameAndEmail(username, email);

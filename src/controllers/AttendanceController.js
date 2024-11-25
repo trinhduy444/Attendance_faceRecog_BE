@@ -331,7 +331,7 @@ class AttendanceController {
             // console.log("body", course_group_id, isSendMail)
             if (!course_group_id || course_group_id === 'none') throw new BadRequestError("Please enter a course group ID");
             const role_id = req.user.role_id
-            if (role_id !== 1 && role_id !== 2) throw new ForbiddenError("You not allowed to access this endpoint")
+            if (role_id !== 1 && role_id !== 2 && role_id !== 4) throw new ForbiddenError("You not allowed to access this endpoint")
             await courseModel.updateAllTotalAbsent(course_group_id).then(async (result) => {
                 if (result && isSendMail) {
                     const result2 = await attendanceModel.sendMailAllStudentAfterUpdate(course_group_id)

@@ -6,7 +6,7 @@ class NotifyController {
         try {
             const user_id = req.user.user_id;
             const role_id = req.user.role_id;
-            if (role_id !== 1 && role_id !== 2) {
+            if (role_id !== 1 && role_id !== 2 && role_id !== 4) {
                 throw new ForbiddenError("You are not allowed here");
             }
             const { title, file_link, content, type, valueType } = req.body;
@@ -50,8 +50,8 @@ class NotifyController {
     }
     getAllNotifications = async (req, res) => {
         try {
-            const user_id = req.user.user_id;
-            if (user_id !== 1) throw new ForbiddenError("You are not allow to receive notifications");
+            const role_id = req.user.role_id;
+            if (role_id !== 1 && role_id !== 4) throw new ForbiddenError("You are not allow to receive notifications");
 
             const notifications = await notifyModel.getAllNotifications();
             return res.status(200).json({
@@ -71,7 +71,8 @@ class NotifyController {
     hideNotifications = async (req, res) => {
         try {
             const user_id = req.user.user_id;
-            if (user_id !== 1) throw new ForbiddenError("You are not allow to receive notifications");
+            const role_id = req.user.role_id;
+            if (role_id !== 1 && role_id !== 4) throw new ForbiddenError("You are not allow to receive notifications");
             const { notify_id } = req.params
             if (!notify_id) throw new BadRequestError("Not found notification")
             const result = await notifyModel.hideNotification(notify_id, user_id);
@@ -98,7 +99,8 @@ class NotifyController {
     showNotifications = async (req, res) => {
         try {
             const user_id = req.user.user_id;
-            if (user_id !== 1) throw new ForbiddenError("You are not allow to receive notifications");
+            const role_id = req.user.role_id;
+            if (role_id !== 1 && role_id !== 4) throw new ForbiddenError("You are not allow to receive notifications");
             const { notify_id } = req.params
             if (!notify_id) throw new BadRequestError("Not found notification")
             const result = await notifyModel.showNotification(notify_id, user_id);

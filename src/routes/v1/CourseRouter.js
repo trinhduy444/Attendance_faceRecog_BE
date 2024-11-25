@@ -20,7 +20,7 @@ router.put('/', authMiddleware.isLogin, courseController.putCourse);
 router.delete('/', authMiddleware.isLogin, courseController.deleteCourse);
 
 //Get Course filter
-router.post('/getCourseFilter', authMiddleware.isLogin, courseController.getCourseFilter)
+router.post('/getCourseFilter', authMiddleware.isLogin, authMiddleware.isAdmin,courseController.getCourseFilter)
 
 //Get All Course Group active
 router.post('/getAllCourseGroupActive', authMiddleware.isLogin, courseController.getAllCourseGroupActive)
@@ -40,6 +40,8 @@ router.post('/getCourseGroupByStudent', authMiddleware.isLogin, courseController
 router.get('/getInfoCourseGroup/:course_group_id', courseController.getInfoCourseGroup)
 
 router.post('/checkAccessCourseGroup/:course_group_id', authMiddleware.isLogin, courseController.checkInCourseGroup)
+router.post('/checkAccessCourseGroupTeacher/:course_group_id', authMiddleware.isLogin, authMiddleware.isTeacher, courseController.checkAccessCourseGroupTeacher)
+
 
 //Get All Course Groups have Semester Year
 router.post('/getAllCourseGroup', authMiddleware.isLogin, authMiddleware.isAdmin, courseController.getAllCourseGroup)

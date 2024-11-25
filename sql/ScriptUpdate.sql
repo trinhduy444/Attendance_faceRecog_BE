@@ -406,33 +406,44 @@ GO
 
 -- 13/08 view All Course Groups Student
 
-CREATE VIEW ViewCourseGroupInfoByStudentId
-AS
-	SELECT
-		cg.course_group_id,
-		cg.group_code,
-		cg.course_code,
-		cls.shift_code,
-		cls.classroom_code,
-		cgsl.student_id,
-		cgsl.total_absent,
-		cgsl.ban_yn,
-		cgsl.status,
-		sh.week_from,
-		sh.week_to,
-		sh.week_day,
-		su.nickname,
-		su.avatar_path,
-		c.course_name,
-		cg.semester_year_id
-	FROM
-		CourseGroupStudentList cgsl
-		INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
-		INNER JOIN Schedule sh ON cgsl.course_group_id = sh.course_group_id
-		INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
-		INNER JOIN sysUser su ON cg.teacher_id = su.user_id
-		INNER JOIN Course c ON cg.course_code = c.course_code;
-Go
+CREATE OR ALTER VIEW ViewCourseGroupInfoByStudentId AS
+SELECT
+    cg.course_group_id,
+    cg.group_code,
+    cg.course_code,
+    ISNULL(cls.shift_code, '') AS shift_code,
+    ISNULL(cls.classroom_code, '') AS classroom_code,
+    ISNULL(s.start_time, '00:00') AS start_time,
+    ISNULL(s.end_time, '00:00') AS end_time,
+    cgsl.student_id,
+    cgsl.total_absent,
+    cgsl.ban_yn,
+    cgsl.status,
+    ISNULL(sh.week_from, 0) AS week_from,
+    ISNULL(sh.week_to, 0) AS week_to,
+    ISNULL(sh.week_day, 0) AS week_day,
+    ISNULL(sh.exclude_week, '') AS exclude_week,
+    ISNULL(sh.total_shift, 0) AS total_shift,
+    ISNULL(su.nickname, '') AS nickname,
+    ISNULL(su.avatar_path, '') AS avatar_path,
+    ISNULL(c.course_name, '') AS course_name,
+    cg.semester_year_id,
+    ISNULL(a.attend_yn, 0) AS attend_yn,
+    ISNULL(a.late_yn, 0) AS late_yn,
+    ISNULL(a.note, '') AS note,
+    ISNULL(a.enter_time, '00:00') AS enter_time,
+	a.attend_date
+FROM
+    CourseGroupStudentList cgsl
+    INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
+    LEFT JOIN Schedule sh ON cgsl.course_group_id = sh.course_group_id
+    LEFT JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
+    LEFT JOIN Shift s ON cls.shift_code = s.shift_code
+    LEFT JOIN sysUser su ON cg.teacher_id = su.user_id
+    LEFT JOIN Course c ON cg.course_code = c.course_code
+    LEFT JOIN Attendance a ON cgsl.course_group_id = a.course_group_id 
+                          AND cgsl.student_id = a.student_id;
+GO
 --SELECT * FROM ViewCourseGroupInfoByStudentId WHERE student_id = 65 and semester_year_id = 6
 
 
@@ -947,3 +958,7 @@ GO
 
 -- View nào lấy lên hông đủ cột thì chạy cái này nha Duy
 EXEC sys.sp_refreshview 'vAttendance' -- Tên view
+
+-- 27/10 Update new role
+INSERT INTO SysRole( role_name, status, creator_id, updater_id, create_time, update_time) VALUES
+	( N'Tổng quản trị viên', 1, 1, 1, '2024-05-17 20:42:33.567', '2024-05-17 20:42:33.567')

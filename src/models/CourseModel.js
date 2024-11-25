@@ -458,7 +458,7 @@ class CourseModel {
             let params = [];
 
             if (semester_year_id) {
-                q += ` WHERE semester_year_id = ?`;
+                q = `SELECT * FROM CourseGroupInfoView where semester_year_id = ? ORDER BY semester_year_id DESC `;
                 params.push(semester_year_id);
             }
 
@@ -481,6 +481,25 @@ class CourseModel {
             `;
 
             db.query(query, [courseGroupId, studentId], (err, results) => {
+                if (err) return reject(err);
+                if (results[0].count > 0) {
+                    resolve(true);
+                } else {
+                    resolve(false);
+                }
+            });
+        });
+    };
+    checkTeacherInCourseGroup(courseGroupId, teacherId) {
+
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT COUNT(*) AS count
+                FROM CourseGroup
+                WHERE course_group_id = ? AND teacher_id = ?;
+            `;
+
+            db.query(query, [courseGroupId, teacherId], (err, results) => {
                 if (err) return reject(err);
                 if (results[0].count > 0) {
                     resolve(true);

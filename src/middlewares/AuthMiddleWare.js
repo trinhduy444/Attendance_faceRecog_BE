@@ -16,7 +16,7 @@ class AuthMiddleware {
             // console.log("RT", refreshToken)
             const keyStore = await keyStoreModel.getUserByRefreshTokenUsing(refreshToken);
             if (!keyStore) throw new ForbiddenError("KeyStore invalid");
-            
+
             const payload = jwt.verify(accessToken.split(" ")[1], keyStore[0].publicKey);
             req.user = payload;
             next();
@@ -27,7 +27,19 @@ class AuthMiddleware {
     }
 
     isAdmin(req, res, next) {
-        if (req.user.role_id != 1) {
+        
+        if (req.user.role_id != 1 && req.user.role_id != 4 ) {            
+            return res.status(401).json({
+                'status': 401,
+                'message': 'Unauthorized user.',
+                'data': {}
+            });
+        }
+        return next();
+    }
+
+    isRootAdmin(req, res, next) {
+        if (req.user.role_id !== 4) {
             return res.status(401).json({
                 'status': 401,
                 'message': 'Unauthorized user.',
@@ -58,7 +70,7 @@ class AuthMiddleware {
         }
         return next();
     }
-    
+
 }
 
 module.exports = new AuthMiddleware;

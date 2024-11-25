@@ -9,9 +9,7 @@ const { getInfoData } = require('../utils/index');
 class AdminController {
     getUsers = async (req, res) => {
 
-        if (req.user?.role_id !== 1) {
-            throw new ForbiddenError('You are not allowed');
-        }
+
         const users = await userModel.getAllUsers();
         // console.log(users)
         return res.status(200).json({
@@ -22,9 +20,7 @@ class AdminController {
     };
     getUsersDetail = async (req, res) => {
         const { faculty_id, inputFilter, type, genderFilter } = req.body;
-        if (req.user?.role_id !== 1) {
-            throw new ForbiddenError('You are not allowed');
-        }
+
         const users = await userModel.getAllUsersDetail(faculty_id, inputFilter, type, genderFilter);
         // console.log(users)
         return res.status(200).json({
@@ -34,9 +30,7 @@ class AdminController {
         })
     };
     getTeachers = async (req, res) => {
-        if (req.user?.role_id !== 1) {
-            throw new ForbiddenError('You are not allowed');
-        }
+
         const teachers = await userModel.getAllTeachers();
         // console.log(users)
         return res.status(200).json({
@@ -46,7 +40,7 @@ class AdminController {
         })
     };
     getAllAdmins = async (req, res) => {
-        if (req.user?.role_id !== 1 && req.user.user_id !== 1) {
+        if (req.user.role_id !== 4) {
             throw new ForbiddenError('You are not allowed');
         }
         const admins = await userModel.getAllAdmins();
@@ -59,7 +53,7 @@ class AdminController {
     };
     createAdmin = (req, res) => {
         const { email, username, password, nickname, phone } = req.body;
-        if (req.user?.role_id !== 1 && req.user.user_id !== 1) {
+        if (req.user.role_id !== 4) {
             throw new ForbiddenError('You are not allowed');
         }
         userModel.createAdmin(email, username, password, nickname, phone, req.user.user_id)
@@ -81,7 +75,7 @@ class AdminController {
             return res.status(403).json({ status: 403, message: 'Invalid users' });
         }
 
-        if (req.user?.role_id !== 1) {
+        if (req.user?.role_id !== 1 && req.user.role_id !== 4) {
             throw new ForbiddenError('You are not allowed');
         }
 
@@ -100,9 +94,6 @@ class AdminController {
         }
     }
     createTeachers = async (req, res) => {
-        if (req.user?.role_id !== 1) {
-            throw new ForbiddenError('You are not allowed');
-        }
         const { teachers } = req.body;
         if (!Array.isArray(teachers) || teachers.length === 0) {
             return res.status(403).json({ status: 403, message: 'Invalid teachers' });
@@ -131,7 +122,7 @@ class AdminController {
             const user_id = req.body.user_id;
             if (!user_id) throw new ForbiddenError('Please provide a user');
 
-            if (req.user?.role_id !== 1) throw new ForbiddenError('You are not allowed');
+            if (req.user?.role_id !== 1 && req.user?.role_id !== 4) throw new ForbiddenError('You are not allowed');
 
             if (!req.file) {
                 return res.status(400).json({ message: 'Không có file nào được upload' });
@@ -185,10 +176,12 @@ class AdminController {
     };
 
     uploadImages = async (req, res) => {
+        
         try {
-            if (req.user?.role_id !== 1) throw new ForbiddenError('You are not allowed');
+            if (req.user?.role_id !== 1 && req.user?.role_id !== 4)  throw new ForbiddenError('You are not allowed');
 
             if (!req.files || req.files.length === 0) {
+                
                 return res.status(400).json({ message: 'Không có file nào được upload' });
             }
             const streamUpload = (file, options) => {
@@ -250,7 +243,7 @@ class AdminController {
     };
     getTeachersByFaculty = async (req, res) => {
         try {
-            if (req.user?.role_id !== 1) {
+            if (req.user?.role_id !== 1 && req.user?.role_id !== 4)  {
                 throw new ForbiddenError('You are not allowed');
             }
             const faculty_id = parseInt(req.params.faculty_id) || 10010
@@ -270,10 +263,10 @@ class AdminController {
     lockAccount(req, res) {
         try {
             const { user_id } = req.params;
-            if (req.user?.role_id !== 1 && req.user.user_id !== 1) {
+            if (req.user.role_id !== 1 && req.user.role_id !== 4) {
                 throw new ForbiddenError('You are not allowed');
             }
-            userModel.lockAccount(user_id, req.user.user_id,1).then((data) => {
+            userModel.lockAccount(user_id, req.user.user_id, 1).then((data) => {
                 if (data) {
                     return res.status(200).json({
                         status: 200,
@@ -295,7 +288,7 @@ class AdminController {
     unLockAccount(req, res) {
         try {
             const { user_id } = req.params;
-            if (req.user?.role_id !== 1 && req.user.user_id !== 1) {
+            if (req.user.role_id !== 1 && req.user.role_id !== 4) {
                 throw new ForbiddenError('You are not allowed');
             }
             userModel.unLockAccount(user_id, req.user.user_id, 1).then((data) => {
@@ -319,12 +312,12 @@ class AdminController {
 
     lockUserAccount(req, res) {
         try {
-            const { user_id,role_id } = req.params;
-            console.log( user_id,role_id)
-            if (req.user?.role_id !== 1) {
+            const { user_id, role_id } = req.params;
+            console.log(user_id, role_id)
+            if (req.user?.role_id !== 1 && req.user?.role_id !== 4) {
                 throw new ForbiddenError('You are not allowed');
             }
-            userModel.lockAccount(user_id, req.user.user_id,parseInt(role_id)).then((data) => {
+            userModel.lockAccount(user_id, req.user.user_id, parseInt(role_id)).then((data) => {
                 if (data) {
                     return res.status(200).json({
                         status: 200,
@@ -345,11 +338,11 @@ class AdminController {
 
     unLockUserAccount(req, res) {
         try {
-            const { user_id,role_id } = req.params;
-            if (req.user?.role_id !== 1) {
+            const { user_id, role_id } = req.params;
+            if (req.user?.role_id !== 1 && req.user?.role_id !== 4)  {
                 throw new ForbiddenError('You are not allowed');
             }
-            userModel.unLockAccount(user_id, req.user.user_id,parseInt(role_id)).then((data) => {
+            userModel.unLockAccount(user_id, req.user.user_id, parseInt(role_id)).then((data) => {
                 if (data) {
                     return res.status(200).json({
                         status: 200,

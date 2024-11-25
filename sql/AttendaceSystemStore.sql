@@ -234,6 +234,28 @@ AS
 		LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
 		LEFT JOIN Course d ON c.course_code = d.course_code
 GO
+-- update thang 11
+ALTER VIEW vattendance
+AS
+SELECT 
+    a.*,
+    ISNULL(b.username, '') AS username,
+    ISNULL(b.nickname, '') AS nickname,
+    ISNULL(c.course_code, '') AS course_code,
+    ISNULL(d.course_name, '') AS course_name,
+    ISNULL(e.ban_yn, 0) AS ban_yn, 
+    CONVERT(VARCHAR(10), a.attend_date, 103) AS attend_date_dmy,
+    CONVERT(VARCHAR(5), a.attend_date, 103) AS attend_date_dm
+FROM 
+    Attendance a
+    LEFT JOIN SysUser b ON a.student_id = b.user_id
+    LEFT JOIN CourseGroup c ON a.course_group_id = c.course_group_id
+    LEFT JOIN Course d ON c.course_code = d.course_code
+    LEFT JOIN CourseGroupStudentList e 
+        ON a.course_group_id = e.course_group_id 
+       AND a.student_id = e.student_id; 
+GO
+
 SELECT *
 FROM vattendance
 GO
@@ -407,25 +429,30 @@ from ActiveCourseGroups
 
 -- 07/08 View xem tất cả course group
 Go
-CREATE VIEW CourseGroupInfoView
-AS
-	SELECT
-		cg.course_group_id,
-		cg.group_code,
-		cg.classroomshift_id,
-		cg.semester_year_id,
-		cg.status,
-		cg.teacher_id,
-		c.course_name,
-		su.avatar_path,
-		su.nickname,
-		cls.classroom_code,
-		cls.shift_code
-	FROM
-		CourseGroup cg
-		INNER JOIN Course c ON cg.course_code = c.course_code
-		INNER JOIN sysUser su ON cg.teacher_id = su.user_id
-		INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id;
+CREATE VIEW CourseGroupInfoView AS
+SELECT
+    cg.course_group_id,
+    cg.group_code,
+    cg.classroomshift_id,
+    cg.semester_year_id,
+    cg.status,
+    cg.teacher_id,
+	cg.total_student_qty,
+	c.course_code,
+    c.course_name,
+    su.avatar_path,
+    su.nickname,
+    cls.classroom_code,
+    cls.shift_code,
+    sch.week_from,
+    sch.week_to,
+    sch.week_day
+FROM
+    CourseGroup cg
+    INNER JOIN Course c ON cg.course_code = c.course_code
+    INNER JOIN sysUser su ON cg.teacher_id = su.user_id
+    INNER JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
+    LEFT JOIN Schedule sch ON cg.course_group_id = sch.course_group_id;
 GO
 
 select *
@@ -528,38 +555,44 @@ GO
 
 -- 13/08 view All Course Groups Student
 
-CREATE VIEW ViewCourseGroupInfoByStudentId
-AS
-	SELECT
-		cg.course_group_id,
-		cg.group_code,
-		cg.course_code,
-		ISNULL(cls.shift_code, '') AS shift_code,
-		ISNULL(cls.classroom_code, '') AS classroom_code,
-		ISNULL(s.start_time, '00:00') AS start_time,
-		ISNULL(s.end_time, '00:00') AS end_time,
-		cgsl.student_id,
-		cgsl.total_absent,
-		cgsl.ban_yn,
-		cgsl.status,
-		ISNULL(sh.week_from, 0) AS week_from,
-		ISNULL(sh.week_to, 0) AS week_to,
-		ISNULL(sh.week_day, 0) AS week_day,
-		ISNULL(sh.exclude_week, '') AS exclude_week,
-		ISNULL(sh.total_shift, 0) AS total_shift,
-		ISNULL(su.nickname, '') AS nickname,
-		ISNULL(su.avatar_path, '') AS avatar_path,
-		ISNULL(c.course_name, '') AS course_name,
-		cg.semester_year_id
-	FROM
-		CourseGroupStudentList cgsl
-		INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
-		LEFT JOIN Schedule sh ON cgsl.course_group_id = sh.course_group_id
-		LEFT JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
-		LEFT JOIN Shift s on cls.shift_code = s.shift_code
-		LEFT JOIN sysUser su ON cg.teacher_id = su.user_id
-		LEFT JOIN Course c ON cg.course_code = c.course_code;
-Go
+CREATE OR ALTER VIEW ViewCourseGroupInfoByStudentId AS
+SELECT
+    cg.course_group_id,
+    cg.group_code,
+    cg.course_code,
+    ISNULL(cls.shift_code, '') AS shift_code,
+    ISNULL(cls.classroom_code, '') AS classroom_code,
+    ISNULL(s.start_time, '00:00') AS start_time,
+    ISNULL(s.end_time, '00:00') AS end_time,
+    cgsl.student_id,
+    cgsl.total_absent,
+    cgsl.ban_yn,
+    cgsl.status,
+    ISNULL(sh.week_from, 0) AS week_from,
+    ISNULL(sh.week_to, 0) AS week_to,
+    ISNULL(sh.week_day, 0) AS week_day,
+    ISNULL(sh.exclude_week, '') AS exclude_week,
+    ISNULL(sh.total_shift, 0) AS total_shift,
+    ISNULL(su.nickname, '') AS nickname,
+    ISNULL(su.avatar_path, '') AS avatar_path,
+    ISNULL(c.course_name, '') AS course_name,
+    cg.semester_year_id,
+    ISNULL(a.attend_yn, 0) AS attend_yn,
+    ISNULL(a.late_yn, 0) AS late_yn,
+    ISNULL(a.note, '') AS note,
+    ISNULL(a.enter_time, '00:00') AS enter_time,
+	a.attend_date
+FROM
+    CourseGroupStudentList cgsl
+    INNER JOIN CourseGroup cg ON cgsl.course_group_id = cg.course_group_id
+    LEFT JOIN Schedule sh ON cgsl.course_group_id = sh.course_group_id
+    LEFT JOIN ClassRoomShift cls ON cg.classroomshift_id = cls.classroomshift_id
+    LEFT JOIN Shift s ON cls.shift_code = s.shift_code
+    LEFT JOIN sysUser su ON cg.teacher_id = su.user_id
+    LEFT JOIN Course c ON cg.course_code = c.course_code
+    LEFT JOIN Attendance a ON cgsl.course_group_id = a.course_group_id 
+                          AND cgsl.student_id = a.student_id;
+GO
 --SELECT * FROM ViewCourseGroupInfoByStudentId WHERE student_id = 65 and semester_year_id = 6
 
 -- 17/08 View All Student from Course Group
