@@ -16,7 +16,13 @@ router.post('/createUsers', authMiddleware.isLogin, authMiddleware.isAdmin, Admi
 router.post('/createTeachers', authMiddleware.isLogin, authMiddleware.isAdmin, AdminController.createTeachers);
 
 router.post('/uploadimage', authMiddleware.isLogin,upload.single('image'), AdminController.uploadImage);
-router.post('/uploadimages', authMiddleware.isLogin,authMiddleware.isAdmin, upload.array('images'), AdminController.uploadImages);
+// router.post('/uploadimages', authMiddleware.isLogin,authMiddleware.isAdmin, upload.array('images'), AdminController.uploadImages);
+router.post('/uploadimages', authMiddleware.isLogin,authMiddleware.isAdmin, upload.array('images'), AdminController.uploadImages2);
+router.post('/uploadSysFaces', authMiddleware.isLogin,authMiddleware.isAdmin, upload.array('images'), AdminController.uploadImagesWithFace);
+
+// router.post('/findClosetVector', authMiddleware.isLogin, AdminController.findClosestVector);
+
+
 // Lock admin account
 router.put('/lockAccount/:user_id', authMiddleware.isLogin, authMiddleware.isAdmin, AdminController.lockAccount);
 router.put('/unLockAccount/:user_id', authMiddleware.isLogin, authMiddleware.isAdmin, AdminController.unLockAccount);

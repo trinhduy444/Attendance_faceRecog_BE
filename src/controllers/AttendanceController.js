@@ -63,7 +63,8 @@ class AttendanceController {
         courseGroupId = courseGroupId || 0;
         attendType = attendType || 0;
         attendImagePath = attendImagePath || '';
-
+        console.log("dataaaaaa:",studentId, courseGroupId, attendType, attendImagePath);
+        
         const AttendanceRawData = { studentId, courseGroupId, attendType, attendImagePath };
         attendanceModel.addAttendanceRawDataServerDateTime(AttendanceRawData, req.user.user_id)
             .then((notExists) => {

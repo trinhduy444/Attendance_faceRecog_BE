@@ -415,6 +415,7 @@ class AttendanceRawDataModel {
         }
         return false;
     }
+    
 }
 
 module.exports = new AttendanceRawDataModel;

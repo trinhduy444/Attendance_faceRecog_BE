@@ -61,7 +61,7 @@ class AuthMiddleware {
     }
 
     isTeacherOrAdmin(req, res, next) {
-        if (req.user.role_id != 1 && req.user.role_id != 2) {
+        if (req.user.role_id != 1 && req.user.role_id != 2 && req.user.role_id != 4) {
             return res.status(401).json({
                 'status': 401,
                 'message': 'Unauthorized user.',

@@ -523,6 +523,21 @@ class UserModel {
 
         });
     }
+    createNewSysUserFace(user_id, avatar_path, createId) {
+        this.deleteKey('allUsers')
+        user_id = sql.Int(user_id);
+        avatar_path = sql.VarChar(avatar_path);
+
+        return new Promise((resolve, reject) => {
+            const q = 'INSERT INTO SysUserFace (user_id, face_image_path,status, creator_id, updater_id,create_time,update_time) values(?,?,?,?,?,getDate(),getDate())';
+            const params = [user_id, avatar_path, 1, createId, createId]
+            db.query(q, params, (err, result) => {
+                if (err) { reject(err); }
+                resolve(result);
+            })
+
+        });
+    }
 
     getTeacherIDByMSGV(MSGV) {
         return new Promise((resolve, reject) => {
@@ -671,7 +686,7 @@ class UserModel {
     }
     updatePassword(username, email, hashedPassword) {
         return new Promise((resolve, reject) => {
-                const q = `UPDATE SysUser SET password = ? WHERE username = ? AND email = ?`;
+            const q = `UPDATE SysUser SET password = ? WHERE username = ? AND email = ?`;
 
             const params = [hashedPassword, username, email];
 
